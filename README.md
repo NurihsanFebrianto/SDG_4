@@ -1,7 +1,8 @@
-Tahap 1: Buka Terminal di VS Code
-Tahap 2: Arahkan ke Folder Tujuan
-contoh [ cd Documents, cd Documents/Projects]
-Tahap 3: Jalankan Kode Lengkapnya
-lakukan perintah [ git clone https://github.com/NurihsanFebrianto/SDG_4.git]
-Tahap 4: Buka Folder Proyek di vs code
-perintahnya [ code .]
+Tahap 1: Buka Terminal di VS Code <br>
+Tahap 2: Arahkan ke Folder Tujuan <br>
+Contoh: cd Documents <br>
+Contoh: cd Documents/Projects <br>
+Tahap 3: Jalankan Kode Lengkapnya <br>
+Perintah: git clone https://github.com/NurihsanFebrianto/SDG_4.git <br>
+Tahap 4: Buka Folder Proyek di VS Code <br>
+Perintah: code . <br>
