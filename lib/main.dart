@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'providers/user_provider.dart';
 import 'providers/modul_provider.dart';
 import 'providers/catatan_provider.dart';
 import 'providers/quiz_provider.dart';
+import 'services/auth_preferens.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
-import 'services/auth_preferens.dart'; // kelas untuk SharedPreferences login
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +20,7 @@ class AppKurikulum extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()), // ✅ Tambah ini
         ChangeNotifierProvider(create: (_) => ModulProvider()),
         ChangeNotifierProvider(create: (_) => CatatanProvider()),
         ChangeNotifierProvider(create: (_) => QuizProvider()),
@@ -26,17 +28,8 @@ class AppKurikulum extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Aplikasi Materi Kurikulum',
-        theme: ThemeData(
-          primarySwatch: Colors.indigo,
-          scaffoldBackgroundColor: Colors.grey[50],
-          appBarTheme: const AppBarTheme(
-            elevation: 0,
-            centerTitle: true,
-          ),
-        ),
         home: FutureBuilder<bool>(
-          future: AuthPreferens()
-              .isLoggedIn(), // cek status login di SharedPreferences
+          future: AuthPreferens().isLoggedIn(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(

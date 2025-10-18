@@ -1,9 +1,8 @@
-import 'dart:convert';
-
 class UserData {
   String nama;
-  int umur;
-  String jenisKelamin;
+  int? umur;
+  String? jenisKelamin;
+
   String? modulTerakhirId;
   String? babTerakhirId;
   String? modulTerakhirNama;
@@ -12,8 +11,8 @@ class UserData {
 
   UserData({
     required this.nama,
-    required this.umur,
-    required this.jenisKelamin,
+    this.umur,
+    this.jenisKelamin,
     this.modulTerakhirId,
     this.babTerakhirId,
     this.modulTerakhirNama,
@@ -21,6 +20,7 @@ class UserData {
     this.lastScrollOffset,
   });
 
+  // Convert to Map (kalau disimpan ke local storage / database)
   Map<String, dynamic> toMap() {
     return {
       'nama': nama,
@@ -34,6 +34,7 @@ class UserData {
     };
   }
 
+  // Convert dari Map ke objek
   factory UserData.fromMap(Map<String, dynamic> map) {
     return UserData(
       nama: map['nama'],
@@ -43,7 +44,7 @@ class UserData {
       babTerakhirId: map['babTerakhirId'],
       modulTerakhirNama: map['modulTerakhirNama'],
       babTerakhirNama: map['babTerakhirNama'],
-      lastScrollOffset: map['lastScrollOffset'],
+      lastScrollOffset: map['lastScrollOffset']?.toDouble(),
     );
   }
 }

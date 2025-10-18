@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/user_provider.dart';
 import 'login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -9,11 +11,10 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
-  final TextEditingController fullNameController = TextEditingController();
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
+  final fullNameController = TextEditingController();
+  final usernameController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
 
   bool isLoading = false;
   bool obscurePassword = true;
@@ -31,10 +32,8 @@ class _SignupScreenState extends State<SignupScreen> {
         confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Semua field harus diisi'),
-          backgroundColor: Colors.red[400],
-          behavior: SnackBarBehavior.floating,
-        ),
+            content: const Text('Semua field harus diisi'),
+            backgroundColor: Colors.red[400]),
       );
       return;
     }
@@ -42,10 +41,8 @@ class _SignupScreenState extends State<SignupScreen> {
     if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Password dan konfirmasi tidak sama'),
-          backgroundColor: Colors.red[400],
-          behavior: SnackBarBehavior.floating,
-        ),
+            content: const Text('Password dan konfirmasi tidak sama'),
+            backgroundColor: Colors.red[400]),
       );
       return;
     }
@@ -53,24 +50,28 @@ class _SignupScreenState extends State<SignupScreen> {
     if (password.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Password minimal 6 karakter'),
-          backgroundColor: Colors.red[400],
-          behavior: SnackBarBehavior.floating,
-        ),
+            content: const Text('Password minimal 6 karakter'),
+            backgroundColor: Colors.red[400]),
       );
       return;
     }
 
     setState(() => isLoading = true);
-
     await Future.delayed(const Duration(seconds: 1));
+
+    // ✅ Simpan data ke UserProvider
+    final userProvider = context.read<UserProvider>();
+    userProvider.login(
+      nama: fullName,
+      umur: 0,
+      jenisKelamin: 'Tidak diketahui',
+    );
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Signup berhasil! Silakan login.'),
           backgroundColor: Colors.green[400],
-          behavior: SnackBarBehavior.floating,
         ),
       );
 
@@ -231,10 +232,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                   : Icons.visibility_off_outlined,
                               color: Colors.grey[600],
                             ),
-                            onPressed:
-                                () => setState(
-                                  () => obscurePassword = !obscurePassword,
-                                ),
+                            onPressed: () => setState(
+                              () => obscurePassword = !obscurePassword,
+                            ),
                           ),
                           filled: true,
                           fillColor: Colors.grey[50],
@@ -271,12 +271,10 @@ class _SignupScreenState extends State<SignupScreen> {
                                   : Icons.visibility_off_outlined,
                               color: Colors.grey[600],
                             ),
-                            onPressed:
-                                () => setState(
-                                  () =>
-                                      obscureConfirmPassword =
-                                          !obscureConfirmPassword,
-                                ),
+                            onPressed: () => setState(
+                              () => obscureConfirmPassword =
+                                  !obscureConfirmPassword,
+                            ),
                           ),
                           filled: true,
                           fillColor: Colors.grey[50],
@@ -310,25 +308,24 @@ class _SignupScreenState extends State<SignupScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child:
-                              isLoading
-                                  ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.5,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                    ),
-                                  )
-                                  : const Text(
-                                    'Daftar',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
+                          child: isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
                                     ),
                                   ),
+                                )
+                              : const Text(
+                                  'Daftar',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                         ),
                       ),
                     ],
@@ -346,13 +343,12 @@ class _SignupScreenState extends State<SignupScreen> {
                       style: TextStyle(color: Colors.grey[600]),
                     ),
                     GestureDetector(
-                      onTap:
-                          () => Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
-                            ),
-                          ),
+                      onTap: () => Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const LoginScreen(),
+                        ),
+                      ),
                       child: Text(
                         'Login',
                         style: TextStyle(

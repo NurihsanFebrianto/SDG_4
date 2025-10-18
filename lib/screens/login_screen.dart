@@ -1,5 +1,7 @@
-import 'package:aplikasi_materi_kurikulum/services/auth_preferens.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../services/auth_preferens.dart';
+import '../providers/user_provider.dart';
 import 'home_screen.dart';
 import 'signup_screen.dart';
 
@@ -11,8 +13,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final usernameController = TextEditingController();
+  final passwordController = TextEditingController();
   bool isLoading = false;
   bool obscurePassword = true;
 
@@ -23,18 +25,25 @@ class _LoginScreenState extends State<LoginScreen> {
     if (username.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Username dan password harus diisi'),
-          backgroundColor: Colors.red[400],
-          behavior: SnackBarBehavior.floating,
-        ),
+            content: const Text('Username dan password harus diisi'),
+            backgroundColor: Colors.red[400]),
       );
       return;
     }
 
     setState(() => isLoading = true);
-
     await Future.delayed(const Duration(seconds: 1));
+
+    // ✅ Simpan status login di SharedPreferences
     await AuthPreferens().login();
+
+    // ✅ Simpan data user di provider (contoh sederhana)
+    final userProvider = context.read<UserProvider>();
+    userProvider.login(
+      nama: username,
+      umur: 0,
+      jenisKelamin: 'Tidak diketahui',
+    );
 
     if (mounted) {
       Navigator.pushReplacement(
