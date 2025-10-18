@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import 'login_screen.dart';
+import 'home_screen.dart';
 import 'detail_materi_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -23,7 +24,7 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Batal', style: TextStyle(color: Colors.grey)),
+            child: const Text('Batal'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -40,11 +41,23 @@ class ProfileScreen extends StatelessWidget {
     if (shouldLogout == true) {
       await AuthPreferens().logout();
       if (context.mounted) {
-        Navigator.pushReplacement(
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false,
         );
       }
+    }
+  }
+
+  void handleBack(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
     }
   }
 
@@ -53,12 +66,24 @@ class ProfileScreen extends StatelessWidget {
     final user = context.watch<UserProvider>().data;
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.blue[600],
+        title: const Text(
+          'Profil',
+          style: TextStyle(color: Colors.white),
+        ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => handleBack(context),
+        ),
+      ),
       backgroundColor: Colors.grey[100],
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // 🟦 Header Profil
+              // 🧍 Header Profil
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -68,11 +93,10 @@ class ProfileScreen extends StatelessWidget {
                     end: Alignment.bottomRight,
                   ),
                 ),
+                padding: const EdgeInsets.only(bottom: 20),
                 child: Column(
                   children: [
-                    const SizedBox(height: 40),
-
-                    // Avatar
+                    const SizedBox(height: 30),
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
@@ -96,9 +120,7 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 16),
-
                     Text(
                       user?.nama ?? 'Nama Pengguna',
                       style: const TextStyle(
@@ -107,23 +129,19 @@ class ProfileScreen extends StatelessWidget {
                         color: Colors.white,
                       ),
                     ),
-
                     const SizedBox(height: 6),
-
                     Text(
-                      'user@example.com', // 👉 nanti bisa diganti dengan email asli
+                      'user@example.com',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.white.withOpacity(0.9),
                       ),
                     ),
-
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),
 
-              // 📚 Materi Terakhir
+              // 📘 Materi Terakhir
               if (user?.modulTerakhirId != null) ...[
                 Padding(
                   padding: const EdgeInsets.all(16),
@@ -209,7 +227,7 @@ class ProfileScreen extends StatelessWidget {
 
               const SizedBox(height: 8),
 
-              // 🧭 Menu
+              // 📋 Menu
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
