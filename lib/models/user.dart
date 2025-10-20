@@ -1,7 +1,8 @@
 class UserData {
-  String nama;
+  String? nama;
   int? umur;
   String? jenisKelamin;
+  String? email;
 
   String? modulTerakhirId;
   String? babTerakhirId;
@@ -10,9 +11,10 @@ class UserData {
   double? lastScrollOffset;
 
   UserData({
-    required this.nama,
+    this.nama,
     this.umur,
     this.jenisKelamin,
+    this.email,
     this.modulTerakhirId,
     this.babTerakhirId,
     this.modulTerakhirNama,
@@ -20,12 +22,12 @@ class UserData {
     this.lastScrollOffset,
   });
 
-  // Convert to Map (kalau disimpan ke local storage / database)
   Map<String, dynamic> toMap() {
     return {
       'nama': nama,
       'umur': umur,
       'jenisKelamin': jenisKelamin,
+      'email': email,
       'modulTerakhirId': modulTerakhirId,
       'babTerakhirId': babTerakhirId,
       'modulTerakhirNama': modulTerakhirNama,
@@ -34,17 +36,21 @@ class UserData {
     };
   }
 
-  // Convert dari Map ke objek
   factory UserData.fromMap(Map<String, dynamic> map) {
     return UserData(
-      nama: map['nama'],
-      umur: map['umur'],
-      jenisKelamin: map['jenisKelamin'],
-      modulTerakhirId: map['modulTerakhirId'],
-      babTerakhirId: map['babTerakhirId'],
-      modulTerakhirNama: map['modulTerakhirNama'],
-      babTerakhirNama: map['babTerakhirNama'],
-      lastScrollOffset: map['lastScrollOffset']?.toDouble(),
+      nama: map['nama'] as String?,
+      umur: map['umur'] is int
+          ? map['umur'] as int
+          : int.tryParse(map['umur']?.toString() ?? ''),
+      jenisKelamin: map['jenisKelamin'] as String?,
+      email: map['email'] as String?,
+      modulTerakhirId: map['modulTerakhirId'] as String?,
+      babTerakhirId: map['babTerakhirId'] as String?,
+      modulTerakhirNama: map['modulTerakhirNama'] as String?,
+      babTerakhirNama: map['babTerakhirNama'] as String?,
+      lastScrollOffset: map['lastScrollOffset'] != null
+          ? double.tryParse(map['lastScrollOffset'].toString())
+          : null,
     );
   }
 }

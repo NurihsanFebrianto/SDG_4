@@ -117,7 +117,7 @@ class _QuizScreenState extends State<QuizScreen> {
                               child: Row(
                                 children: [
                                   Text(
-                                    String.fromCharCode(65 + optIndex) + '. ',
+                                    '${String.fromCharCode(65 + optIndex)}. ',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),

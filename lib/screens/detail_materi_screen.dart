@@ -140,7 +140,7 @@ class _DetailMateriScreenState extends State<DetailMateriScreen> {
   }
 
   void _editSideNote(BuildContext context, String id, String isiAwal) {
-    final TextEditingController _controller =
+    final TextEditingController controller =
         TextEditingController(text: isiAwal);
 
     showDialog(
@@ -149,7 +149,7 @@ class _DetailMateriScreenState extends State<DetailMateriScreen> {
         return AlertDialog(
           title: const Text('Edit Catatan'),
           content: TextField(
-            controller: _controller,
+            controller: controller,
             keyboardType: TextInputType.multiline,
             maxLines: 4,
             decoration: const InputDecoration(
@@ -164,7 +164,7 @@ class _DetailMateriScreenState extends State<DetailMateriScreen> {
             ),
             ElevatedButton(
               onPressed: () {
-                final isiBaru = _controller.text.trim();
+                final isiBaru = controller.text.trim();
                 if (isiBaru.isNotEmpty) {
                   Provider.of<CatatanProvider>(context, listen: false)
                       .updateCatatan(id, isiBaru);

@@ -103,7 +103,7 @@ class DatabaseService {
   }
 
   Future<void> close() async {
-    final db = await _database;
+    final db = _database;
     db?.close();
   }
 }

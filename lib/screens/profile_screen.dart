@@ -1,13 +1,25 @@
 import 'package:aplikasi_materi_kurikulum/services/auth_preferens.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/user_provider.dart';
+import '../providers/profile_provider.dart';
 import 'login_screen.dart';
 import 'home_screen.dart';
-import 'detail_materi_screen.dart';
+import 'profile_detail_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() =>
+        Provider.of<ProfileProvider>(context, listen: false).fetchProfile());
+  }
 
   Future<void> handleLogout(BuildContext context) async {
     final shouldLogout = await showDialog<bool>(
@@ -63,7 +75,8 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<UserProvider>().data;
+    final profileProvider = context.watch<ProfileProvider>();
+    final user = profileProvider.user;
 
     return Scaffold(
       appBar: AppBar(
@@ -79,227 +92,154 @@ class ProfileScreen extends StatelessWidget {
         ),
       ),
       backgroundColor: Colors.grey[100],
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // 🧍 Header Profil
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.blue[600]!, Colors.blue[400]!],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                padding: const EdgeInsets.only(bottom: 20),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 30),
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Colors.blue[100],
-                        child: Icon(
-                          Icons.person,
-                          size: 50,
-                          color: Colors.blue[700],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      user?.nama ?? 'Nama Pengguna',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'user@example.com',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white.withOpacity(0.9),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // 📘 Materi Terakhir
-              if (user?.modulTerakhirId != null) ...[
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => DetailMateriScreen(
-                            modulId: user!.modulTerakhirId!,
-                            modulNama: user.modulTerakhirNama ?? '',
-                            babId: user.babTerakhirId!,
-                            babNama: user.babTerakhirNama ?? '',
-                            isiMateri: '...ambil isi materi dari database...',
-                          ),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 5,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.blue[50],
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child:
-                                Icon(Icons.bookmark, color: Colors.blue[600]),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  user?.babTerakhirNama ??
-                                      'Bab Tidak Ditemukan',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  user?.modulTerakhirNama ??
-                                      'Modul Tidak Ditemukan',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
+      body: profileProvider.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : user == null
+              ? const Center(child: Text('Gagal memuat profil'))
+              : SafeArea(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        // 🧍 Header Profil
+                        Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.blue[600]!, Colors.blue[400]!],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
                           ),
-                          const Icon(Icons.arrow_forward_ios, size: 16),
-                        ],
-                      ),
+                          padding: const EdgeInsets.only(bottom: 20),
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 30),
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: CircleAvatar(
+                                  radius: 50,
+                                  backgroundColor: Colors.blue[100],
+                                  child: Icon(
+                                    Icons.person,
+                                    size: 50,
+                                    color: Colors.blue[700],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                user.name,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                user.email,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white.withOpacity(0.9),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // 📋 Menu
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Column(
+                            children: [
+                              _buildMenuCard(
+                                icon: Icons.info_outline,
+                                title: 'Detail Profil',
+                                subtitle: 'Lihat informasi lengkap Anda',
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) =>
+                                            const ProfileDetailScreen()),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              _buildMenuCard(
+                                icon: Icons.lock_outline,
+                                title: 'Ubah Password',
+                                subtitle: 'Perbarui password Anda',
+                                onTap: () {},
+                              ),
+                              const SizedBox(height: 12),
+                              _buildMenuCard(
+                                icon: Icons.notifications_none,
+                                title: 'Notifikasi',
+                                subtitle: 'Atur preferensi notifikasi',
+                                onTap: () {},
+                              ),
+                              const SizedBox(height: 12),
+                              _buildMenuCard(
+                                icon: Icons.help_outline,
+                                title: 'Bantuan',
+                                subtitle: 'Pusat bantuan dan FAQ',
+                                onTap: () {},
+                              ),
+                              const SizedBox(height: 12),
+                              _buildMenuCard(
+                                icon: Icons.info_outline,
+                                title: 'Tentang Aplikasi',
+                                subtitle: 'Versi 1.0.0',
+                                onTap: () {},
+                              ),
+                              const SizedBox(height: 32),
+
+                              // 🔴 Tombol Logout
+                              SizedBox(
+                                width: double.infinity,
+                                height: 50,
+                                child: ElevatedButton.icon(
+                                  icon: const Icon(Icons.logout),
+                                  label: const Text(
+                                    'Logout',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red[600],
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  onPressed: () => handleLogout(context),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ] else
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    'Belum ada materi terakhir yang dipelajari.',
-                    style: TextStyle(color: Colors.grey[700]),
-                  ),
-                ),
-
-              const SizedBox(height: 8),
-
-              // 📋 Menu
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  children: [
-                    _buildMenuCard(
-                      icon: Icons.person_outline,
-                      title: 'Edit Profil',
-                      subtitle: 'Ubah informasi akun Anda',
-                      onTap: () {},
-                    ),
-                    const SizedBox(height: 12),
-                    _buildMenuCard(
-                      icon: Icons.lock_outline,
-                      title: 'Ubah Password',
-                      subtitle: 'Perbarui password Anda',
-                      onTap: () {},
-                    ),
-                    const SizedBox(height: 12),
-                    _buildMenuCard(
-                      icon: Icons.notifications_none,
-                      title: 'Notifikasi',
-                      subtitle: 'Atur preferensi notifikasi',
-                      onTap: () {},
-                    ),
-                    const SizedBox(height: 12),
-                    _buildMenuCard(
-                      icon: Icons.help_outline,
-                      title: 'Bantuan',
-                      subtitle: 'Pusat bantuan dan FAQ',
-                      onTap: () {},
-                    ),
-                    const SizedBox(height: 12),
-                    _buildMenuCard(
-                      icon: Icons.info_outline,
-                      title: 'Tentang Aplikasi',
-                      subtitle: 'Versi 1.0.0',
-                      onTap: () {},
-                    ),
-                    const SizedBox(height: 32),
-
-                    // 🔴 Tombol Logout
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.logout),
-                        label: const Text(
-                          'Logout',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red[600],
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: () => handleLogout(context),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
