@@ -22,7 +22,13 @@ class TambahCatatanScreen extends StatefulWidget {
 
 class _TambahCatatanScreenState extends State<TambahCatatanScreen> {
   final _formKey = GlobalKey<FormState>();
-  String _isi = '';
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,55 +40,72 @@ class _TambahCatatanScreenState extends State<TambahCatatanScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (!isFromHome) ...[
-              Text('Modul: ${widget.modulNama}'),
-              const SizedBox(height: 4),
-              Text(
-                'Bab: ${widget.babNama}',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-            ],
-            Form(
-              key: _formKey,
-              child: TextFormField(
-                maxLines: 6,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!isFromHome) ...[
+                Text('Modul: ${widget.modulNama}'),
+                const SizedBox(height: 4),
+                Text(
+                  'Bab: ${widget.babNama}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+              ],
+              TextFormField(
+                controller: _controller,
+                maxLines: 8,
                 decoration: const InputDecoration(
                   hintText: 'Tulis catatan kamu...',
                   border: OutlineInputBorder(),
+                  labelText: 'Isi Catatan',
                 ),
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Catatan wajib diisi'
-                    : null,
-                onSaved: (v) => _isi = v!.trim(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (!_formKey.currentState!.validate()) return;
-                  _formKey.currentState!.save();
-
-                  Provider.of<CatatanProvider>(context, listen: false)
-                      .tambahCatatan(
-                    _isi,
-                    modulId: widget.modulId.isEmpty ? null : widget.modulId,
-                    babId: widget.babId.isEmpty ? null : widget.babId,
-                  );
-
-                  Navigator.pop(context);
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Catatan tidak boleh kosong';
+                  }
+                  return null;
                 },
-                child: const Text('Simpan'),
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _simpanCatatan,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: const Text('Simpan Catatan'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  void _simpanCatatan() {
+    if (!_formKey.currentState!.validate()) return;
+
+    final catatanProvider =
+        Provider.of<CatatanProvider>(context, listen: false);
+
+    catatanProvider.tambahCatatan(
+      _controller.text.trim(),
+      modulId: widget.modulId.isEmpty ? null : widget.modulId,
+      babId: widget.babId.isEmpty ? null : widget.babId,
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Catatan berhasil disimpan'),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+    Navigator.pop(context);
   }
 }

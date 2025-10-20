@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/quiz_question.dart';
 import '../models/quiz_result.dart';
 import '../services/database_service.dart';
-import '../screens/quiz_result_screen.dart';
 
-class QuizProvider extends ChangeNotifier {
+class QuizProvider with ChangeNotifier {
   final Map<String, List<QuizQuestion>> _questions = {};
   final Map<String, List<int?>> _answers = {};
   final Map<String, List<bool>> _locked = {};
@@ -46,7 +45,8 @@ class QuizProvider extends ChangeNotifier {
     );
   }
 
-  Future<void> submitQuiz(BuildContext context, String babId) async {
+  // METHOD YANG DIPERBAIKI: Hanya return result, tidak handle navigation
+  Future<QuizResult> submitQuiz(String babId) async {
     final questions = _questions[babId] ?? [];
     final answers = _answers[babId] ?? [];
 
@@ -61,17 +61,7 @@ class QuizProvider extends ChangeNotifier {
     await DatabaseService.instance.saveQuizResult(result);
     notifyListeners();
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => QuizResultScreen(
-          babId: babId,
-          result: result,
-          questions: questions,
-          answers: answers,
-        ),
-      ),
-    );
+    return result; // Return result saja, navigation dilakukan di screen
   }
 
   void resetQuiz(String babId) {

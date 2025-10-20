@@ -174,7 +174,7 @@ Membran plasma, yang menyelubungi sel, bersifat semipermeabel dan berfungsi meng
       ),
       Bab(
           id: 'bio_bab4',
-          judul: 'Bab 4: ...',
+          judul: 'Bab 4: Jaringan Pada Tumbuhan',
           konten:
               '''Jaringan adalah kumpulan sel yang memiliki struktur dan fungsi yang sama. Pada tumbuhan, sel-sel terspesialisasi membentuk berbagai jenis jaringan yang bekerja sama untuk mendukung pertumbuhan, perkembangan, dan kelangsungan hidup tumbuhan. Jaringan-jaringan ini dikelompokkan menjadi dua sistem utama: sistem jaringan dasar (ground tissue) dan sistem jaringan pembuluh (vascular tissue).
 
@@ -187,7 +187,7 @@ Selain itu, terdapat juga jaringan epidermis yang melapisi permukaan tumbuhan, b
 '''),
       Bab(
           id: 'bio_bab5',
-          judul: 'Bab 5: ...',
+          judul: 'Bab 5: Jaringan Pada Hewan',
           konten:
               '''Sama seperti tumbuhan, hewan juga tersusun atas berbagai jaringan yang terspesialisasi. Jaringan pada hewan dikelompokkan menjadi empat jenis utama berdasarkan struktur dan fungsinya: jaringan epitel, jaringan ikat, jaringan otot, dan jaringan saraf.
 

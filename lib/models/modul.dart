@@ -1,4 +1,4 @@
-import 'bab.dart';
+import 'bab.dart'; // ✅ PASTIKAN IMPORT INI ADA
 
 class Modul {
   final String id;
@@ -11,15 +11,19 @@ class Modul {
     required this.babList,
   });
 
-  factory Modul.fromMap(Map<String, dynamic> m) => Modul(
-        id: m['id'] as String,
-        nama: m['nama'] as String,
-        babList: (m['babList'] as List).map((e) => Bab.fromMap(e)).toList(),
-      );
+  factory Modul.fromMap(Map<String, dynamic> map) {
+    return Modul(
+      id: map['id'] as String,
+      nama: map['nama'] as String,
+      babList: (map['babList'] as List).map((e) => Bab.fromMap(e)).toList(),
+    );
+  }
 
-  Map<String, dynamic> toMap() => {
-        'id': id,
-        'nama': nama,
-        'babList': babList.map((b) => b.toMap()).toList(),
-      };
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'nama': nama,
+      'babList': babList.map((b) => b.toMap()).toList(),
+    };
+  }
 }

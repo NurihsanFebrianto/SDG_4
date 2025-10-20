@@ -12,40 +12,64 @@ class CatatanProvider with ChangeNotifier {
   }
 
   Future<void> _loadCatatanFromDB() async {
-    _items = await DatabaseService.instance.getAllCatatan();
-    notifyListeners();
-  }
-
-  Future<void> tambahCatatan(String isi,
-      {String? modulId, String? babId}) async {
-    final newCatatan = Catatan(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      isi: isi,
-      modulId: modulId,
-      babId: babId,
-    );
-    await DatabaseService.instance.insertCatatan(newCatatan);
-    _items.insert(0, newCatatan);
-    notifyListeners();
-  }
-
-  Future<void> updateCatatan(String id, String isiBaru) async {
-    final index = _items.indexWhere((catatan) => catatan.id == id);
-    if (index != -1) {
-      _items[index].isi = isiBaru;
-      await DatabaseService.instance.updateCatatan(_items[index]);
+    try {
+      _items = await DatabaseService.instance.getAllCatatan();
+      notifyListeners();
+    } catch (e) {
+      print('Error loading catatan: $e');
+      _items = [];
       notifyListeners();
     }
   }
 
+  Future<void> tambahCatatan(String isi,
+      {String? modulId, String? babId}) async {
+    try {
+      final newCatatan = Catatan(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        isi: isi,
+        modulId: modulId,
+        babId: babId,
+      );
+
+      await DatabaseService.instance.insertCatatan(newCatatan);
+      _items.insert(0, newCatatan); // Tambah di awal list
+      notifyListeners();
+
+      print('Catatan berhasil ditambah: ${newCatatan.isi}');
+    } catch (e) {
+      print('Error tambah catatan: $e');
+    }
+  }
+
+  Future<void> updateCatatan(String id, String isiBaru) async {
+    try {
+      final index = _items.indexWhere((catatan) => catatan.id == id);
+      if (index != -1) {
+        _items[index].isi = isiBaru;
+        await DatabaseService.instance.updateCatatan(_items[index]);
+        notifyListeners();
+        print('Catatan berhasil diupdate: $isiBaru');
+      }
+    } catch (e) {
+      print('Error update catatan: $e');
+    }
+  }
+
   Future<void> hapusCatatan(String id) async {
-    await DatabaseService.instance.deleteCatatan(id);
-    _items.removeWhere((c) => c.id == id);
-    notifyListeners();
+    try {
+      await DatabaseService.instance.deleteCatatan(id);
+      _items.removeWhere((c) => c.id == id);
+      notifyListeners();
+      print('Catatan berhasil dihapus: $id');
+    } catch (e) {
+      print('Error hapus catatan: $e');
+    }
   }
 
   List<Catatan> catatanUntuk(String? modulId, String? babId) {
     if (modulId == null && babId == null) return daftarCatatan;
+
     return _items.where((c) {
       if (modulId != null && babId != null) {
         return c.modulId == modulId && c.babId == babId;
@@ -56,5 +80,10 @@ class CatatanProvider with ChangeNotifier {
       }
       return false;
     }).toList();
+  }
+
+  // Method untuk refresh data
+  Future<void> refreshCatatan() async {
+    await _loadCatatanFromDB();
   }
 }

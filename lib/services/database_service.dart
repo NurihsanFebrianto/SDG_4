@@ -11,7 +11,7 @@ class DatabaseService {
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDB('app_data.db');
+    _database = await _initDB('aplikasi_materi.db');
     return _database!;
   }
 
@@ -26,7 +26,8 @@ class DatabaseService {
     );
   }
 
-  Future<void> _createDB(Database db, int version) async {
+  Future _createDB(Database db, int version) async {
+    // Tabel Catatan
     await db.execute('''
       CREATE TABLE catatan (
         id TEXT PRIMARY KEY,
@@ -37,17 +38,16 @@ class DatabaseService {
       )
     ''');
 
+    // Tabel Quiz Results
     await db.execute('''
-      CREATE TABLE quiz_result (
+      CREATE TABLE quiz_results (
         babId TEXT PRIMARY KEY,
         score INTEGER NOT NULL
       )
     ''');
   }
 
-  // ==============================
-  // CATATAN CRUD
-  // ==============================
+  // CATATAN OPERATIONS
   Future<void> insertCatatan(Catatan catatan) async {
     final db = await instance.database;
     await db.insert(
@@ -59,8 +59,8 @@ class DatabaseService {
 
   Future<List<Catatan>> getAllCatatan() async {
     final db = await instance.database;
-    final result = await db.query('catatan', orderBy: 'createdAt DESC');
-    return result.map((json) => Catatan.fromMap(json)).toList();
+    final maps = await db.query('catatan', orderBy: 'createdAt DESC');
+    return maps.map((map) => Catatan.fromMap(map)).toList();
   }
 
   Future<void> updateCatatan(Catatan catatan) async {
@@ -75,16 +75,18 @@ class DatabaseService {
 
   Future<void> deleteCatatan(String id) async {
     final db = await instance.database;
-    await db.delete('catatan', where: 'id = ?', whereArgs: [id]);
+    await db.delete(
+      'catatan',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 
-  // ==============================
-  // QUIZ RESULT CRUD
-  // ==============================
+  // QUIZ RESULTS OPERATIONS
   Future<void> saveQuizResult(QuizResult result) async {
     final db = await instance.database;
     await db.insert(
-      'quiz_result',
+      'quiz_results',
       result.toJson(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
@@ -92,18 +94,19 @@ class DatabaseService {
 
   Future<Map<String, QuizResult>> getQuizResults() async {
     final db = await instance.database;
-    final result = await db.query('quiz_result');
+    final maps = await db.query('quiz_results');
 
-    final map = <String, QuizResult>{};
-    for (var row in result) {
-      final qr = QuizResult.fromJson(row);
-      map[qr.babId] = qr;
+    final results = <String, QuizResult>{};
+    for (final map in maps) {
+      final result = QuizResult.fromJson(map);
+      results[result.babId] = result;
     }
-    return map;
+
+    return results;
   }
 
-  Future<void> close() async {
-    final db = _database;
-    db?.close();
+  Future close() async {
+    final db = await instance.database;
+    db.close();
   }
 }

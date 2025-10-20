@@ -17,6 +17,7 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.5
   http: ^1.2.2
+  cached_network_image: ^3.3.0 # ✅ Pastikan ini ada
 
 dev_dependencies:
   flutter_test:

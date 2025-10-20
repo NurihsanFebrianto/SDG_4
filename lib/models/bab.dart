@@ -9,15 +9,19 @@ class Bab {
     required this.konten,
   });
 
-  factory Bab.fromMap(Map<String, dynamic> m) => Bab(
-        id: m['id'] as String,
-        judul: m['judul'] as String,
-        konten: m['konten'] as String,
-      );
+  factory Bab.fromMap(Map<String, dynamic> map) {
+    return Bab(
+      id: map['id'] as String,
+      judul: map['judul'] as String,
+      konten: map['konten'] as String,
+    );
+  }
 
-  Map<String, dynamic> toMap() => {
-        'id': id,
-        'judul': judul,
-        'konten': konten,
-      };
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'judul': judul,
+      'konten': konten,
+    };
+  }
 }
