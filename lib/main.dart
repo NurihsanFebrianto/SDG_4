@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-// Import semua provider yang dipakai
+// Import semua provider
 import 'providers/user_provider.dart';
 import 'providers/modul_provider.dart';
 import 'providers/catatan_provider.dart';
@@ -16,6 +17,9 @@ import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // 🔥 Inisialisasi Firebase tanpa firebase_options
+  await Firebase.initializeApp();
+
   runApp(const AppKurikulum());
 }
 

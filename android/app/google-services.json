@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1017228389035",
+    "project_id": "qualityeducation-7e5ff",
+    "storage_bucket": "qualityeducation-7e5ff.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1017228389035:android:20daabe34971f92bab25ee",
+        "android_client_info": {
+          "package_name": "com.example.sdg4"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2kyaTNNsGz5hqOHRF43Awje-G4Uuu-dM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
