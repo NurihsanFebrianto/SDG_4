@@ -21,8 +21,9 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // UPGRADE VERSION untuk tambah kolom baru
       onCreate: _createDB,
+      onUpgrade: _upgradeDB,
     );
   }
 
@@ -38,16 +39,34 @@ class DatabaseService {
       )
     ''');
 
-    // Tabel Quiz Results
+    // Tabel Quiz Results - UPDATED dengan kolom lengkap
     await db.execute('''
       CREATE TABLE quiz_results (
         babId TEXT PRIMARY KEY,
-        score INTEGER NOT NULL
+        score INTEGER NOT NULL,
+        totalQuestions INTEGER NOT NULL,
+        timestamp TEXT NOT NULL
       )
     ''');
   }
 
+  // Upgrade database jika ada perubahan struktur
+  Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Tambah kolom baru jika upgrade dari version 1
+      await db.execute('''
+        ALTER TABLE quiz_results ADD COLUMN totalQuestions INTEGER DEFAULT 5
+      ''');
+      await db.execute('''
+        ALTER TABLE quiz_results ADD COLUMN timestamp TEXT
+      ''');
+    }
+  }
+
+  // ============================================
   // CATATAN OPERATIONS
+  // ============================================
+
   Future<void> insertCatatan(Catatan catatan) async {
     final db = await instance.database;
     await db.insert(
@@ -82,12 +101,15 @@ class DatabaseService {
     );
   }
 
-  // QUIZ RESULTS OPERATIONS
+  // ============================================
+  // QUIZ RESULTS OPERATIONS - FIXED
+  // ============================================
+
   Future<void> saveQuizResult(QuizResult result) async {
     final db = await instance.database;
     await db.insert(
       'quiz_results',
-      result.toJson(),
+      result.toMap(), // GANTI dari toJson() ke toMap()
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -98,11 +120,28 @@ class DatabaseService {
 
     final results = <String, QuizResult>{};
     for (final map in maps) {
-      final result = QuizResult.fromJson(map);
+      final result =
+          QuizResult.fromMap(map); // GANTI dari fromJson() ke fromMap()
       results[result.babId] = result;
     }
 
     return results;
+  }
+
+  // Hapus hasil quiz untuk bab tertentu
+  Future<void> deleteQuizResult(String babId) async {
+    final db = await instance.database;
+    await db.delete(
+      'quiz_results',
+      where: 'babId = ?',
+      whereArgs: [babId],
+    );
+  }
+
+  // Hapus semua hasil quiz
+  Future<void> deleteAllQuizResults() async {
+    final db = await instance.database;
+    await db.delete('quiz_results');
   }
 
   Future close() async {

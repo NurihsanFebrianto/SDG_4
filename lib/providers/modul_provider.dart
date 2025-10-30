@@ -1,31 +1,43 @@
 import 'package:flutter/foundation.dart';
 import '../models/modul.dart';
-import '../models/materi_data.dart';
+import '../services/modul_service.dart';
 
 class ModulProvider extends ChangeNotifier {
   List<Modul> _modul = [];
-
-  ModulProvider() {
-    _loadInitial();
-  }
+  bool _isLoading = false;
+  String _error = '';
+  final ModulService _service = ModulService();
 
   List<Modul> get modul => _modul;
+  bool get isLoading => _isLoading;
+  String get error => _error;
 
-  void _loadInitial() {
-    _modul = semuaModulDummy;
-    notifyListeners();
+  ModulProvider() {
+    print('🔄 PROVIDER DIJALANKAN');
+    _loadModul();
   }
 
-  Modul? getModulById(String id) {
+  Future<void> _loadModul() async {
+    _isLoading = true;
+    notifyListeners();
+
     try {
-      return _modul.firstWhere((m) => m.id == id);
-    } catch (_) {
-      return null;
+      print('📡 LOADING DATA DARI API...');
+      _modul = await _service.fetchModulFromApi();
+      _error = '';
+      print('✅ BERHASIL LOAD: ${_modul.length} MODUL');
+    } catch (e) {
+      print('❌ GAGAL LOAD: $e');
+      _error = e.toString();
+      _modul = _service.getDummyModul();
+      print('🔄 PAKAI DATA FALLBACK');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
-  void addModul(Modul m) {
-    _modul.add(m);
-    notifyListeners();
+  Future<void> refresh() async {
+    await _loadModul();
   }
 }
