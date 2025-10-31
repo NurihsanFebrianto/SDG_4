@@ -125,14 +125,15 @@ class _HomeContent extends StatelessWidget {
         children: [
           // Welcome Section dengan Quotes Motivasi
           _buildWelcomeSection(context),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
 
           // Quick Actions - Hanya Modul & Teman
           _buildQuickActions(context),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
 
           // Friends Section di Beranda
           _buildFriendsSection(context, friendsProvider),
+          const SizedBox(height: 16), // Extra padding di bawah
         ],
       ),
     );
@@ -151,7 +152,7 @@ class _HomeContent extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -180,12 +181,12 @@ class _HomeContent extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Text(
             randomQuote,
             style: TextStyle(
               color: Colors.white.withOpacity(0.9),
-              fontSize: 16,
+              fontSize: 15,
               fontStyle: FontStyle.italic,
             ),
           ),
@@ -194,7 +195,6 @@ class _HomeContent extends StatelessWidget {
     );
   }
 
-  // Di dalam _buildQuickActions method, update bagian ini:
   Widget _buildQuickActions(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,40 +205,41 @@ class _HomeContent extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
         ),
-        const SizedBox(height: 16),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 1.5,
+        const SizedBox(height: 12),
+        // FIXED: Pakai Row + Expanded untuk responsive
+        Row(
           children: [
-            _buildActionCard(
-              context,
-              icon: Icons.menu_book,
-              title: 'Modul',
-              subtitle: '3 materi belajar',
-              color: Colors.blue,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ModulListScreen()),
-                );
-              },
+            Expanded(
+              child: _buildActionCard(
+                context,
+                icon: Icons.menu_book,
+                title: 'Modul',
+                subtitle: '3 materi belajar',
+                color: Colors.blue,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ModulListScreen()),
+                  );
+                },
+              ),
             ),
-            _buildActionCard(
-              context,
-              icon: Icons.people,
-              title: 'Teman',
-              subtitle: 'Lihat teman',
-              color: Colors.purple,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const FriendsListScreen()),
-                );
-              },
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildActionCard(
+                context,
+                icon: Icons.people,
+                title: 'Teman',
+                subtitle: 'Lihat teman',
+                color: Colors.purple,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const FriendsListScreen()),
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -263,7 +264,7 @@ class _HomeContent extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min, // PENTING: min size
             children: [
               Icon(icon, color: color, size: 28),
               const SizedBox(height: 8),
@@ -274,6 +275,7 @@ class _HomeContent extends StatelessWidget {
                   fontSize: 16,
                 ),
               ),
+              const SizedBox(height: 2),
               Text(
                 subtitle,
                 style: TextStyle(
@@ -314,10 +316,10 @@ class _HomeContent extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         if (friendsCount > 0) ...[
           SizedBox(
-            height: 120,
+            height: 110, // Dikurangi dari 120 ke 110
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: friendsCount > 5 ? 5 : friendsCount,
@@ -341,21 +343,22 @@ class _HomeContent extends StatelessWidget {
         _showFriendOptions(context, friend, provider);
       },
       child: Container(
-        width: 80,
-        margin: const EdgeInsets.only(right: 16),
+        width: 75, // Dikurangi dari 80 ke 75
+        margin: const EdgeInsets.only(right: 12),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Stack(
               children: [
                 CircleAvatar(
-                  radius: 30,
+                  radius: 28, // Dikurangi dari 30 ke 28
                   backgroundImage: CachedNetworkImageProvider(friend.picture),
                 ),
                 Positioned(
                   bottom: 0,
                   right: 0,
                   child: Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(3),
                     decoration: const BoxDecoration(
                       color: Colors.green,
                       shape: BoxShape.circle,
@@ -363,13 +366,13 @@ class _HomeContent extends StatelessWidget {
                     child: const Icon(
                       Icons.check,
                       color: Colors.white,
-                      size: 12,
+                      size: 10,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               friend.name.split(' ').first,
               style: const TextStyle(
@@ -462,33 +465,37 @@ class _HomeContent extends StatelessWidget {
 
   Widget _buildEmptyFriendsState(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.grey[50],
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey[200]!),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             Icons.people_outline,
-            size: 48,
+            size: 40,
             color: Colors.grey[400],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
             'Belum ada teman',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Colors.grey[600],
                 ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             'Tambahkan teman untuk berbagi materi belajar',
-            style: TextStyle(color: Colors.grey[500]),
+            style: TextStyle(
+              color: Colors.grey[500],
+              fontSize: 13,
+            ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           ElevatedButton(
             onPressed: () {
               Navigator.push(
