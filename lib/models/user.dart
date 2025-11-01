@@ -1,4 +1,5 @@
 class UserData {
+  String? id; // 🆕 Tambahkan ID user (untuk fetch progress)
   String? nama;
   int? umur;
   String? jenisKelamin;
@@ -11,6 +12,7 @@ class UserData {
   double? lastScrollOffset;
 
   UserData({
+    this.id, // 🆕 Tambah id di konstruktor
     this.nama,
     this.umur,
     this.jenisKelamin,
@@ -24,6 +26,7 @@ class UserData {
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id, // 🆕 simpan id
       'nama': nama,
       'umur': umur,
       'jenisKelamin': jenisKelamin,
@@ -38,6 +41,7 @@ class UserData {
 
   factory UserData.fromMap(Map<String, dynamic> map) {
     return UserData(
+      id: map['id']?.toString(), // 🆕 baca id dari map
       nama: map['nama'] as String?,
       umur: map['umur'] is int
           ? map['umur'] as int

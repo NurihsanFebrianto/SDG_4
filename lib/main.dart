@@ -1,16 +1,18 @@
+import 'package:aplikasi_materi_kurikulum/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-// Import semua provider
+// ✅ Import semua provider
 import 'providers/user_provider.dart';
 import 'providers/modul_provider.dart';
 import 'providers/catatan_provider.dart';
 import 'providers/quiz_provider.dart';
 import 'providers/profile_provider.dart';
 import 'providers/friends_provider.dart';
+import 'providers/progress_provider.dart'; // ✅ Penting
 
-// Import service dan screen
+// ✅ Import service dan screen
 import 'services/auth_preferens.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
@@ -36,6 +38,10 @@ class AppKurikulum extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => QuizProvider()),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
         ChangeNotifierProvider(create: (_) => FriendsProvider()),
+        ChangeNotifierProvider(
+            create: (_) => ProgressProvider()), // ✅ sudah didaftarkan
+        ChangeNotifierProvider(
+            create: (_) => AuthProvider()..loadLoginStatus()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -44,6 +50,9 @@ class AppKurikulum extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
           useMaterial3: true,
         ),
+
+        // ✅ Tambahkan ChangeNotifierProvider di sini untuk memastikan
+        // context FutureBuilder juga punya akses ke ProgressProvider
         home: FutureBuilder<bool>(
           future: AuthPreferens().isLoggedIn(),
           builder: (context, snapshot) {
@@ -52,9 +61,12 @@ class AppKurikulum extends StatelessWidget {
                 body: Center(child: CircularProgressIndicator()),
               );
             } else {
-              return snapshot.data == true
-                  ? const HomeScreen()
-                  : const LoginScreen();
+              return ChangeNotifierProvider(
+                create: (_) => ProgressProvider(),
+                child: snapshot.data == true
+                    ? const HomeScreen()
+                    : const LoginScreen(),
+              );
             }
           },
         ),

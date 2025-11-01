@@ -4,6 +4,9 @@ import '../models/user.dart';
 class UserProvider with ChangeNotifier {
   UserData? _user;
 
+  // 🆕 Tambahkan getter ini agar bisa diakses seperti userProvider.user
+  UserData? get user => _user;
+
   bool get isLoggedIn => _user != null;
   UserData? get data => _user;
 
@@ -12,7 +15,12 @@ class UserProvider with ChangeNotifier {
     required int umur,
     required String jenisKelamin,
   }) {
-    _user = UserData(nama: nama, umur: umur, jenisKelamin: jenisKelamin);
+    _user = UserData(
+      id: "1", // 🆕 sementara pakai id statis, bisa diganti kalau login pakai backend
+      nama: nama,
+      umur: umur,
+      jenisKelamin: jenisKelamin,
+    );
     notifyListeners();
   }
 
@@ -69,8 +77,6 @@ class UserProvider with ChangeNotifier {
     _user!
       ..modulTerakhirId = modulId
       ..babTerakhirId = babId
-      ..modulTerakhirNama = _user!.modulTerakhirNama
-      ..babTerakhirNama = _user!.babTerakhirNama
       ..lastScrollOffset = offset;
     notifyListeners();
   }

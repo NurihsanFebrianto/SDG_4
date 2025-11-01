@@ -1,3 +1,4 @@
+import 'package:aplikasi_materi_kurikulum/providers/auth_provider.dart';
 import 'package:aplikasi_materi_kurikulum/services/auth_preferens.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -51,7 +52,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (shouldLogout == true) {
-      await AuthPreferens().logout();
+      await context.read<AuthProvider>().logout();
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(
           context,

@@ -1,3 +1,4 @@
+import 'package:aplikasi_materi_kurikulum/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_preferens.dart';
@@ -34,8 +35,8 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => isLoading = true);
     await Future.delayed(const Duration(seconds: 1));
 
-    // ✅ Simpan status login di SharedPreferences
-    await AuthPreferens().login();
+    // ✅ Simpan status login di SharedPreferences memlalui AuthProvider
+    await context.read<AuthProvider>().login();
 
     // ✅ Simpan data user di provider (contoh sederhana)
     final userProvider = context.read<UserProvider>();

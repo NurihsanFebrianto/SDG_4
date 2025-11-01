@@ -1,3 +1,6 @@
+import 'package:aplikasi_materi_kurikulum/providers/progress_provider.dart';
+import 'package:aplikasi_materi_kurikulum/providers/user_provider.dart';
+import 'package:aplikasi_materi_kurikulum/screens/progress_list_Screen.dart';
 import 'package:aplikasi_materi_kurikulum/services/auth_preferens.dart';
 import 'package:aplikasi_materi_kurikulum/screens/friends_list_screen.dart';
 import 'package:aplikasi_materi_kurikulum/screens/modul_list_screen.dart';
@@ -18,7 +21,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 1; // 0 Catatan, 1 Beranda, 2 Pengaturan
+  int _currentIndex = 1;
 
   final List<Widget> _pages = [
     const CatatanScreen(),
@@ -34,8 +37,9 @@ class _HomeScreenState extends State<HomeScreen> {
         return 'Beranda';
       case 2:
         return 'Pengaturan';
+      default:
+        return '';
     }
-    return '';
   }
 
   @override
@@ -44,10 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text(
           _title,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         elevation: 1,
@@ -76,8 +77,8 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
             offset: const Offset(0, -2),
           ),
         ],
@@ -111,8 +112,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _HomeContent extends StatelessWidget {
+class _HomeContent extends StatefulWidget {
   const _HomeContent();
+
+  @override
+  State<_HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends State<_HomeContent> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      final userId = "1";
+      context.read<ProgressProvider>().getProgress(userId);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -123,24 +138,126 @@ class _HomeContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Welcome Section dengan Quotes Motivasi
           _buildWelcomeSection(context),
-          const SizedBox(height: 24),
-
-          // Quick Actions - Hanya Modul & Teman
+          const SizedBox(height: 28),
           _buildQuickActions(context),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
+          Consumer<ProgressProvider>(
+            builder: (context, progressProvider, _) {
+              if (progressProvider.isLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          // Friends Section di Beranda
+              if (progressProvider.error != null) {
+                return Text(
+                  'Gagal memuat progres: ${progressProvider.error}',
+                  style: const TextStyle(color: Colors.red),
+                );
+              }
+
+              final progress = progressProvider.progress;
+              if (progress == null) {
+                return const Text('Belum ada data progres.');
+              }
+
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 🔹 Header dengan tombol "Lihat Semua"
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Progres Belajar 📈',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            final provider = context.read<ProgressProvider>();
+                            await provider.getAllProgress("1");
+
+                            if (provider.error != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text(
+                                        'Gagal memuat data: ${provider.error}')),
+                              );
+                              return;
+                            }
+
+                            if (context.mounted) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ProgressListScreen(
+                                      progressList: provider.allProgress),
+                                ),
+                              );
+                            }
+                          },
+                          child: const Text('Lihat Semua'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildProgressItem(
+                            'Hari Ini', '${progress.dailyCompleted} tugas'),
+                        _buildProgressItem(
+                            'Minggu Ini', '${progress.weeklyCompleted} tugas'),
+                        _buildProgressItem('Streak', '${progress.streak} hari'),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    LinearProgressIndicator(
+                        value: progress.lessonProgress / 100),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Modul: ${progress.currentModule} • Pelajaran: ${progress.currentLesson}',
+                      style: const TextStyle(color: Colors.grey, fontSize: 14),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
           _buildFriendsSection(context, friendsProvider),
-          const SizedBox(height: 16), // Extra padding di bawah
+          const SizedBox(height: 20),
         ],
       ),
     );
   }
 
+  Widget _buildProgressItem(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 13, color: Colors.grey),
+        ),
+      ],
+    );
+  }
+
   Widget _buildWelcomeSection(BuildContext context) {
-    // Quotes motivasi acak
     final quotes = [
       "Belajar hari ini untuk kesuksesan esok hari! 📚",
       "Ilmu adalah harta yang tak pernah habis. Teruslah belajar! 💡",
@@ -155,8 +272,6 @@ class _HomeContent extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
           colors: [
             Theme.of(context).colorScheme.primary,
             Theme.of(context).colorScheme.primaryContainer,
@@ -165,7 +280,7 @@ class _HomeContent extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -175,13 +290,13 @@ class _HomeContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Selamat Datang!',
+            'Selamat Datang! 👋',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             randomQuote,
             style: TextStyle(
@@ -195,18 +310,19 @@ class _HomeContent extends StatelessWidget {
     );
   }
 
+  // --- Quick Actions (Modul & Teman)
   Widget _buildQuickActions(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Akses Cepat',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge
+              ?.copyWith(fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 12),
-        // FIXED: Pakai Row + Expanded untuk responsive
+        const SizedBox(height: 14),
         Row(
           children: [
             Expanded(
@@ -224,7 +340,7 @@ class _HomeContent extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
             Expanded(
               child: _buildActionCard(
                 context,
@@ -247,42 +363,34 @@ class _HomeContent extends StatelessWidget {
     );
   }
 
-  Widget _buildActionCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildActionCard(BuildContext context,
+      {required IconData icon,
+      required String title,
+      required String subtitle,
+      required Color color,
+      required VoidCallback onTap}) {
     return Card(
-      elevation: 2,
+      elevation: 3,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min, // PENTING: min size
             children: [
               Icon(icon, color: color, size: 28),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               Text(
                 title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 12,
-                ),
-              ),
+              const SizedBox(height: 4),
+              Text(subtitle,
+                  style: TextStyle(color: Colors.grey[600], fontSize: 13)),
             ],
           ),
         ),
@@ -290,6 +398,7 @@ class _HomeContent extends StatelessWidget {
     );
   }
 
+  // --- Friends Section
   Widget _buildFriendsSection(BuildContext context, FriendsProvider provider) {
     final friendsCount = provider.addedFriends.length;
 
@@ -300,10 +409,11 @@ class _HomeContent extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Teman',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              'Teman Belajar 👥',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             TextButton(
               onPressed: () {
@@ -316,147 +426,42 @@ class _HomeContent extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        if (friendsCount > 0) ...[
+        const SizedBox(height: 14),
+        if (friendsCount > 0)
           SizedBox(
-            height: 110, // Dikurangi dari 120 ke 110
+            height: 110,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: friendsCount > 5 ? 5 : friendsCount,
               itemBuilder: (context, index) {
                 final friend = provider.addedFriends[index];
-                return _buildFriendItem(friend, context, provider);
+                return _buildFriendItem(friend);
               },
             ),
-          ),
-        ] else ...[
+          )
+        else
           _buildEmptyFriendsState(context),
-        ],
       ],
     );
   }
 
-  Widget _buildFriendItem(
-      Friend friend, BuildContext context, FriendsProvider provider) {
-    return GestureDetector(
-      onTap: () {
-        _showFriendOptions(context, friend, provider);
-      },
-      child: Container(
-        width: 75, // Dikurangi dari 80 ke 75
-        margin: const EdgeInsets.only(right: 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Stack(
-              children: [
-                CircleAvatar(
-                  radius: 28, // Dikurangi dari 30 ke 28
-                  backgroundImage: CachedNetworkImageProvider(friend.picture),
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: const BoxDecoration(
-                      color: Colors.green,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.check,
-                      color: Colors.white,
-                      size: 10,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              friend.name.split(' ').first,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showFriendOptions(
-      BuildContext context, Friend friend, FriendsProvider provider) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: CachedNetworkImageProvider(friend.picture),
-                ),
-                title: Text(friend.name),
-                subtitle: Text(friend.email),
-              ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.person, color: Colors.blue),
-                title: const Text('Lihat Profil'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Navigate to friend profile
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.person_remove, color: Colors.red),
-                title: const Text('Hapus Teman'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showRemoveFriendDialog(context, friend, provider);
-                },
-              ),
-            ],
+  Widget _buildFriendItem(Friend friend) {
+    return Container(
+      width: 75,
+      margin: const EdgeInsets.only(right: 14),
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundImage: CachedNetworkImageProvider(friend.picture),
           ),
-        );
-      },
-    );
-  }
-
-  void _showRemoveFriendDialog(
-      BuildContext context, Friend friend, FriendsProvider provider) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Hapus Teman'),
-        content: Text('Hapus ${friend.name} dari daftar teman?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              provider.removeFriend(friend.id);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('${friend.name} dihapus dari teman'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
-            child: const Text('Hapus'),
+          const SizedBox(height: 6),
+          Text(
+            friend.name.split(' ').first,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -472,27 +477,18 @@ class _HomeContent extends StatelessWidget {
         border: Border.all(color: Colors.grey[200]!),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.people_outline,
-            size: 40,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.people_outline, size: 40, color: Colors.grey[400]),
           const SizedBox(height: 10),
-          Text(
-            'Belum ada teman',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.grey[600],
-                ),
-          ),
+          Text('Belum ada teman',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(color: Colors.grey[600])),
           const SizedBox(height: 6),
           Text(
             'Tambahkan teman untuk berbagi materi belajar',
-            style: TextStyle(
-              color: Colors.grey[500],
-              fontSize: 13,
-            ),
+            style: TextStyle(color: Colors.grey[500], fontSize: 13),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
