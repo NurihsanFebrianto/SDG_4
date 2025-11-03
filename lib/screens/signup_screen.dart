@@ -1,3 +1,4 @@
+import 'package:aplikasi_materi_kurikulum/services/Auth_firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
@@ -22,12 +23,12 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Future<void> handleSignup() async {
     final fullName = fullNameController.text.trim();
-    final username = usernameController.text.trim();
+    final email = usernameController.text.trim(); // username = email
     final password = passwordController.text;
     final confirmPassword = confirmPasswordController.text;
 
     if (fullName.isEmpty ||
-        username.isEmpty ||
+        email.isEmpty ||
         password.isEmpty ||
         confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -57,27 +58,35 @@ class _SignupScreenState extends State<SignupScreen> {
     }
 
     setState(() => isLoading = true);
-    await Future.delayed(const Duration(seconds: 1));
 
-    // ✅ Simpan data ke UserProvider
-    final userProvider = context.read<UserProvider>();
-    userProvider.login(
-      nama: fullName,
-      umur: 0,
-      jenisKelamin: 'Tidak diketahui',
-    );
+    // ✅ Register dengan Firebase
+    final uid = await AuthFirebase().signUp(email, password);
 
-    if (mounted) {
+    if (uid != null) {
+      // ✅ Simpan nama user ke provider
+      context.read<UserProvider>().login(
+            nama: fullName,
+            umur: 0,
+            jenisKelamin: 'Tidak diketahui',
+          );
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Signup berhasil! Silakan login.'),
-          backgroundColor: Colors.green[400],
-        ),
+            content: const Text('Berhasil daftar, silakan login!'),
+            backgroundColor: Colors.green[400]),
       );
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: const Text('Registrasi gagal, coba lagi.'),
+            backgroundColor: Colors.red[400]),
       );
     }
 

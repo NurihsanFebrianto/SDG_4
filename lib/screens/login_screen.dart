@@ -1,10 +1,12 @@
 import 'package:aplikasi_materi_kurikulum/providers/auth_provider.dart';
+import 'package:aplikasi_materi_kurikulum/services/Auth_firebase.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:aplikasi_materi_kurikulum/screens/signup_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_preferens.dart';
 import '../providers/user_provider.dart';
 import 'home_screen.dart';
-import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,36 +22,44 @@ class _LoginScreenState extends State<LoginScreen> {
   bool obscurePassword = true;
 
   Future<void> handleLogin() async {
-    final username = usernameController.text.trim();
+    final email = usernameController.text.trim();
     final password = passwordController.text;
 
-    if (username.isEmpty || password.isEmpty) {
+    if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: const Text('Username dan password harus diisi'),
-            backgroundColor: Colors.red[400]),
+        const SnackBar(
+          content: Text("Email dan password wajib diisi"),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
 
     setState(() => isLoading = true);
-    await Future.delayed(const Duration(seconds: 1));
 
-    // ✅ Simpan status login di SharedPreferences memlalui AuthProvider
-    await context.read<AuthProvider>().login();
+    final user = await AuthFirebase().signInWithEmail(email, password);
 
-    // ✅ Simpan data user di provider (contoh sederhana)
-    final userProvider = context.read<UserProvider>();
-    userProvider.login(
-      nama: username,
-      umur: 0,
-      jenisKelamin: 'Tidak diketahui',
-    );
+    if (user != null) {
+      // ✅ Login berhasil → simpan status ke provider
+      await context.read<AuthProvider>().login();
+      context.read<UserProvider>().login(
+            nama: user.displayName ?? user.email ?? 'Pengguna',
+            umur: 0,
+            jenisKelamin: 'Tidak diketahui',
+          );
 
-    if (mounted) {
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    } else {
+      // ❌ Login gagal → tampilkan pesan error
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Login gagal. Periksa email dan password Anda."),
+          backgroundColor: Colors.red,
+        ),
       );
     }
 
@@ -67,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Icon/Logo
+                // Logo
                 Container(
                   width: 70,
                   height: 70,
@@ -88,7 +98,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 32),
 
-                // Header
                 const Text(
                   'Selamat Datang',
                   style: TextStyle(
@@ -105,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 40),
 
-                // Card Container
+                // Form Login Email
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
@@ -121,43 +130,28 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: Column(
                     children: [
-                      // Username Field
                       TextField(
                         controller: usernameController,
                         decoration: InputDecoration(
                           labelText: 'Email',
-                          prefixIcon: Icon(
-                            Icons.person_outline,
-                            color: Colors.blue[600],
-                          ),
+                          prefixIcon: Icon(Icons.person_outline,
+                              color: Colors.blue[600]),
                           filled: true,
                           fillColor: Colors.grey[50],
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: Colors.blue[600]!,
-                              width: 2,
-                            ),
-                          ),
                         ),
                       ),
-
                       const SizedBox(height: 16),
-
-                      // Password Field
                       TextField(
                         controller: passwordController,
                         obscureText: obscurePassword,
                         decoration: InputDecoration(
                           labelText: 'Password',
-                          prefixIcon: Icon(
-                            Icons.lock_outline,
-                            color: Colors.blue[600],
-                          ),
+                          prefixIcon:
+                              Icon(Icons.lock_outline, color: Colors.blue[600]),
                           suffixIcon: IconButton(
                             icon: Icon(
                               obscurePassword
@@ -166,8 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: Colors.grey[600],
                             ),
                             onPressed: () => setState(
-                              () => obscurePassword = !obscurePassword,
-                            ),
+                                () => obscurePassword = !obscurePassword),
                           ),
                           filled: true,
                           fillColor: Colors.grey[50],
@@ -175,19 +168,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: Colors.blue[600]!,
-                              width: 2,
-                            ),
-                          ),
                         ),
                       ),
-
                       const SizedBox(height: 24),
-
-                      // Login Button
                       SizedBox(
                         width: double.infinity,
                         height: 50,
@@ -196,21 +179,15 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue[600],
                             foregroundColor: Colors.white,
-                            elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                           child: isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
-                                    ),
-                                  ),
+                              ? const CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
                                 )
                               : const Text(
                                   'Login',
@@ -225,9 +202,60 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
+                const SizedBox(height: 16),
+
+                // ✅ Tombol Login Google diperbaiki
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: OutlinedButton(
+                    onPressed: () async {
+                      setState(() => isLoading = true);
+
+                      final user = await AuthFirebase().signInWithGoogle();
+
+                      if (user != null) {
+                        // ✅ Langsung masuk ke halaman Home
+                        if (!mounted) return;
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => const HomeScreen()),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content:
+                                Text("Login Google dibatalkan atau gagal."),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+
+                      setState(() => isLoading = false);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      side: const BorderSide(color: Colors.blue),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        FaIcon(FontAwesomeIcons.google, size: 20),
+                        SizedBox(width: 12),
+                        Text(
+                          "Login dengan Google",
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
                 const SizedBox(height: 24),
 
-                // Signup Link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -238,9 +266,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     GestureDetector(
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => const SignupScreen(),
-                        ),
+                        MaterialPageRoute(builder: (_) => const SignupScreen()),
                       ),
                       child: Text(
                         'Daftar Sekarang',
@@ -267,3 +293,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 }
+
+
+
+//untuk masuk google nya belum bisa
