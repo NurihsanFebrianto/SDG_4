@@ -13,6 +13,23 @@ import 'package:aplikasi_materi_kurikulum/screens/profile_screen.dart';
 import 'package:aplikasi_materi_kurikulum/providers/friends_provider.dart';
 import 'package:aplikasi_materi_kurikulum/models/friend.dart';
 
+// Academic Color Scheme
+const Color primaryDarkBlue = Color(0xFF0A3D62);
+const Color primaryBlue = Color(0xFF1E3A8A);
+const Color primaryLightBlue = Color(0xFF0D47A1);
+
+const Color secondaryCyan = Color(0xFF0EA5E9);
+const Color secondaryBlue = Color(0xFF0284C7);
+const Color secondaryTeal = Color(0xFF14B8A6);
+
+const Color accentAmber = Color(0xFFFBBF24);
+const Color accentOrange = Color(0xFFF59E0B);
+
+const Color successGreen = Color(0xFF10B981);
+const Color warningYellow = Color(0xFFF59E0B);
+const Color errorRed = Color(0xFFEF4444);
+const Color neutralGray = Color(0xFF6B7280);
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -32,11 +49,11 @@ class _HomeScreenState extends State<HomeScreen> {
   String get _title {
     switch (_currentIndex) {
       case 0:
-        return 'Catatan Saya';
+        return 'Catatan Akademik';
       case 1:
-        return 'Beranda';
+        return 'Dashboard Akademik';
       case 2:
-        return 'Pengaturan';
+        return 'Pengaturan Sistem';
       default:
         return '';
     }
@@ -48,66 +65,122 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text(
           _title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+            color: Colors.white,
+          ),
         ),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        elevation: 1,
+        backgroundColor: primaryDarkBlue,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
-          IconButton(
-            tooltip: 'Profil',
-            icon: const Icon(Icons.person_outline),
-            onPressed: () async {
-              final isLoggedIn = await AuthPreferens().isLoggedIn();
-              if (!isLoggedIn) return;
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ProfileScreen()),
-              );
-            },
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: IconButton(
+              tooltip: 'Profil Akademik',
+              icon: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white.withOpacity(0.3)),
+                ),
+                child: const Icon(Icons.school_outlined, size: 22),
+              ),
+              onPressed: () async {
+                final isLoggedIn = await AuthPreferens().isLoggedIn();
+                if (!isLoggedIn) return;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                );
+              },
+            ),
           ),
         ],
       ),
       body: _pages[_currentIndex],
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: _buildAcademicBottomNavigationBar(),
     );
   }
 
-  Widget _buildBottomNavigationBar() {
+  Widget _buildAcademicBottomNavigationBar() {
     return Container(
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 12,
+            offset: const Offset(0, -4),
           ),
         ],
       ),
-      child: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Colors.grey[600],
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.note_alt_outlined),
-            activeIcon: Icon(Icons.note_alt),
-            label: 'Catatan',
+      child: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          backgroundColor: Colors.white,
+          selectedItemColor: primaryBlue,
+          unselectedItemColor: neutralGray,
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Beranda',
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 12,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            activeIcon: Icon(Icons.settings),
-            label: 'Pengaturan',
-          ),
-        ],
+          type: BottomNavigationBarType.fixed,
+          elevation: 8,
+          items: const [
+            BottomNavigationBarItem(
+              icon: _AcademicNavIcon(icon: Icons.notes_outlined),
+              activeIcon: _AcademicNavIcon(icon: Icons.notes, isActive: true),
+              label: 'Catatan',
+            ),
+            BottomNavigationBarItem(
+              icon: _AcademicNavIcon(icon: Icons.dashboard_outlined),
+              activeIcon:
+                  _AcademicNavIcon(icon: Icons.dashboard, isActive: true),
+              label: 'Dashboard',
+            ),
+            BottomNavigationBarItem(
+              icon: _AcademicNavIcon(icon: Icons.settings_outlined),
+              activeIcon:
+                  _AcademicNavIcon(icon: Icons.settings, isActive: true),
+              label: 'Pengaturan',
+            ),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class _AcademicNavIcon extends StatelessWidget {
+  final IconData icon;
+  final bool isActive;
+
+  const _AcademicNavIcon({
+    required this.icon,
+    this.isActive = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: isActive
+          ? BoxDecoration(
+              color: primaryBlue.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            )
+          : null,
+      child: Icon(icon, size: 22),
     );
   }
 }
@@ -134,175 +207,95 @@ class _HomeContentState extends State<_HomeContent> {
     final friendsProvider = Provider.of<FriendsProvider>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildWelcomeSection(context),
-          const SizedBox(height: 28),
+          _buildAcademicWelcomeSection(context),
+          const SizedBox(height: 32),
           _buildQuickActions(context),
-          const SizedBox(height: 28),
-          Consumer<ProgressProvider>(
-            builder: (context, progressProvider, _) {
-              if (progressProvider.isLoading) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (progressProvider.error != null) {
-                return Text(
-                  'Gagal memuat progres: ${progressProvider.error}',
-                  style: const TextStyle(color: Colors.red),
-                );
-              }
-
-              final progress = progressProvider.progress;
-              if (progress == null) {
-                return const Text('Belum ada data progres.');
-              }
-
-              return Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 🔹 Header dengan tombol "Lihat Semua"
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Progres Belajar 📈',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        TextButton(
-                          onPressed: () async {
-                            final provider = context.read<ProgressProvider>();
-                            await provider.getAllProgress("1");
-
-                            if (provider.error != null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text(
-                                        'Gagal memuat data: ${provider.error}')),
-                              );
-                              return;
-                            }
-
-                            if (context.mounted) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => ProgressListScreen(
-                                      progressList: provider.allProgress),
-                                ),
-                              );
-                            }
-                          },
-                          child: const Text('Lihat Semua'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildProgressItem(
-                            'Hari Ini', '${progress.dailyCompleted} tugas'),
-                        _buildProgressItem(
-                            'Minggu Ini', '${progress.weeklyCompleted} tugas'),
-                        _buildProgressItem('Streak', '${progress.streak} hari'),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    LinearProgressIndicator(
-                        value: progress.lessonProgress / 100),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Modul: ${progress.currentModule} • Pelajaran: ${progress.currentLesson}',
-                      style: const TextStyle(color: Colors.grey, fontSize: 14),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 32),
+          _buildProgressSection(context),
+          const SizedBox(height: 32),
           _buildFriendsSection(context, friendsProvider),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  Widget _buildProgressItem(String label, String value) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 13, color: Colors.grey),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildWelcomeSection(BuildContext context) {
-    final quotes = [
-      "Belajar hari ini untuk kesuksesan esok hari! 📚",
-      "Ilmu adalah harta yang tak pernah habis. Teruslah belajar! 💡",
-      "Setiap bab yang kamu baca membawamu lebih dekat ke impianmu. 🌟",
-      "Konsistensi adalah kunci menguasai ilmu. Tetap semangat! 🔑",
-      "Membaca satu bab sehari menjadikanmu ahli seiring waktu. ⏳"
+  Widget _buildAcademicWelcomeSection(BuildContext context) {
+    final academicQuotes = [
+      "Disiplin adalah jembatan antara tujuan dan pencapaian. - Jim Rohn",
+      "Pendidikan adalah senjata paling mematikan di dunia, karena dengan itu Anda dapat mengubah dunia. - Nelson Mandela",
+      "Investasi dalam pengetahuan selalu membayar bunga terbaik. - Benjamin Franklin",
+      "Masa depan adalah milik mereka yang mempersiapkan hari ini. - Malcolm X",
+      "Keunggulan bukanlah suatu tindakan, tetapi sebuah kebiasaan. - Aristoteles"
     ];
-    final randomQuote = quotes[DateTime.now().millisecond % quotes.length];
+    final dailyQuote =
+        academicQuotes[DateTime.now().millisecond % academicQuotes.length];
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).colorScheme.primary,
-            Theme.of(context).colorScheme.primaryContainer,
-          ],
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [primaryDarkBlue, primaryBlue],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: primaryDarkBlue.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Selamat Datang! 👋',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                child: const Icon(Icons.school, color: Colors.white, size: 28),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Selamat Datang, Scholar!',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
+                      ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
           Text(
-            randomQuote,
+            dailyQuote,
             style: TextStyle(
               color: Colors.white.withOpacity(0.9),
               fontSize: 15,
               fontStyle: FontStyle.italic,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: 40,
+            height: 3,
+            decoration: BoxDecoration(
+              color: accentAmber,
+              borderRadius: BorderRadius.circular(2),
             ),
           ),
         ],
@@ -310,28 +303,28 @@ class _HomeContentState extends State<_HomeContent> {
     );
   }
 
-  // --- Quick Actions (Modul & Teman)
   Widget _buildQuickActions(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Akses Cepat',
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge
-              ?.copyWith(fontWeight: FontWeight.bold),
+          'Akses Cepat Akademik',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: primaryDarkBlue,
+                fontSize: 18,
+              ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
-              child: _buildActionCard(
+              child: _buildAcademicActionCard(
                 context,
-                icon: Icons.menu_book,
-                title: 'Modul',
-                subtitle: '3 materi belajar',
-                color: Colors.blue,
+                icon: Icons.menu_book_rounded,
+                title: 'Modul Belajar',
+                subtitle: 'Eksplorasi materi',
+                color: primaryBlue,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -340,14 +333,14 @@ class _HomeContentState extends State<_HomeContent> {
                 },
               ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 16),
             Expanded(
-              child: _buildActionCard(
+              child: _buildAcademicActionCard(
                 context,
-                icon: Icons.people,
-                title: 'Teman',
-                subtitle: 'Lihat teman',
-                color: Colors.purple,
+                icon: Icons.groups_rounded,
+                title: 'Komunitas',
+                subtitle: 'Kolaborasi belajar',
+                color: secondaryTeal,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -363,135 +356,596 @@ class _HomeContentState extends State<_HomeContent> {
     );
   }
 
-  Widget _buildActionCard(BuildContext context,
+  Widget _buildAcademicActionCard(BuildContext context,
       {required IconData icon,
       required String title,
       required String subtitle,
       required Color color,
       required VoidCallback onTap}) {
-    return Card(
-      elevation: 3,
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: color, size: 28),
-              const SizedBox(height: 10),
-              Text(
-                title,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+    return Material(
+      elevation: 2,
+      borderRadius: BorderRadius.circular(16),
+      shadowColor: color.withOpacity(0.2),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade100),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  color.withOpacity(0.05),
+                  color.withOpacity(0.02),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(subtitle,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 13)),
-            ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: color, size: 24),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                    color: primaryDarkBlue,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: neutralGray,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  // --- Friends Section
-  Widget _buildFriendsSection(BuildContext context, FriendsProvider provider) {
-    final friendsCount = provider.addedFriends.length;
+  Widget _buildProgressSection(BuildContext context) {
+    return Consumer<ProgressProvider>(
+      builder: (context, progressProvider, _) {
+        if (progressProvider.isLoading) {
+          return _buildProgressSkeleton();
+        }
 
+        if (progressProvider.error != null) {
+          return _buildErrorState(progressProvider.error!);
+        }
+
+        final progress = progressProvider.progress;
+        if (progress == null) {
+          return _buildEmptyProgressState();
+        }
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+              ),
+            ],
+            border: Border.all(color: Colors.grey.shade100),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: primaryBlue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.timeline_rounded,
+                            color: primaryBlue, size: 20),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Progress Akademik',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: primaryDarkBlue,
+                              fontSize: 18,
+                            ),
+                      ),
+                    ],
+                  ),
+                  _buildViewAllButton(
+                    onPressed: () async {
+                      final provider = context.read<ProgressProvider>();
+                      await provider.getAllProgress("1");
+
+                      if (provider.error != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content:
+                                Text('Gagal memuat data: ${provider.error}'),
+                            backgroundColor: errorRed,
+                          ),
+                        );
+                        return;
+                      }
+
+                      if (context.mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ProgressListScreen(
+                                progressList: provider.allProgress),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildAcademicProgressItem(
+                    'Hari Ini',
+                    '${progress.dailyCompleted}',
+                    'tugas',
+                    secondaryCyan,
+                  ),
+                  _buildAcademicProgressItem(
+                    'Minggu Ini',
+                    '${progress.weeklyCompleted}',
+                    'tugas',
+                    secondaryTeal,
+                  ),
+                  _buildAcademicProgressItem(
+                    'Streak',
+                    '${progress.streak}',
+                    'hari',
+                    accentAmber,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Progress Modul',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: primaryDarkBlue,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Text(
+                        '${progress.lessonProgress}%',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: primaryBlue,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Stack(
+                      children: [
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 600),
+                              width: constraints.maxWidth *
+                                  (progress.lessonProgress / 100),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [secondaryCyan, secondaryBlue],
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    '${progress.currentModule} • ${progress.currentLesson}',
+                    style: TextStyle(
+                      color: neutralGray,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAcademicProgressItem(
+      String label, String value, String unit, Color color) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Teman Belajar 👥',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.bold),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: color,
             ),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const FriendsListScreen()),
-                );
-              },
-              child: const Text('Lihat Semua'),
-            ),
-          ],
+          ),
         ),
-        const SizedBox(height: 14),
-        if (friendsCount > 0)
-          SizedBox(
-            height: 110,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: friendsCount > 5 ? 5 : friendsCount,
-              itemBuilder: (context, index) {
-                final friend = provider.addedFriends[index];
-                return _buildFriendItem(friend);
-              },
-            ),
-          )
-        else
-          _buildEmptyFriendsState(context),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: neutralGray,
+          ),
+        ),
+        Text(
+          unit,
+          style: TextStyle(
+            fontSize: 11,
+            color: neutralGray.withOpacity(0.7),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildFriendItem(Friend friend) {
+  Widget _buildViewAllButton({required VoidCallback onPressed}) {
+    return TextButton(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      child: Text(
+        '',
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          color: secondaryBlue,
+          fontSize: 13,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProgressSkeleton() {
     return Container(
-      width: 75,
-      margin: const EdgeInsets.only(right: 14),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundImage: CachedNetworkImageProvider(friend.picture),
+          Row(
+            children: [
+              Container(
+                width: 150,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            friend.name.split(' ').first,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(3, (index) => _buildShimmerCircle()),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildEmptyFriendsState(BuildContext context) {
+  Widget _buildShimmerCircle() {
+    return Column(
+      children: [
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: 40,
+          height: 10,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorState(String error) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        color: errorRed.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: errorRed.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: errorRed.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.error_outline, color: errorRed, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Gagal memuat progress: $error',
+              style: TextStyle(color: errorRed, fontSize: 14),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyProgressState() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         children: [
-          Icon(Icons.people_outline, size: 40, color: Colors.grey[400]),
-          const SizedBox(height: 10),
-          Text('Belum ada teman',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(color: Colors.grey[600])),
-          const SizedBox(height: 6),
+          Icon(Icons.analytics_outlined, size: 48, color: neutralGray),
+          const SizedBox(height: 12),
           Text(
-            'Tambahkan teman untuk berbagi materi belajar',
-            style: TextStyle(color: Colors.grey[500], fontSize: 13),
+            'Belum Ada Data Progress',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: primaryDarkBlue,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Mulai belajar untuk melihat progress akademik Anda',
             textAlign: TextAlign.center,
+            style: TextStyle(color: neutralGray, fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFriendsSection(BuildContext context, FriendsProvider provider) {
+    final friendsCount = provider.addedFriends.length;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: secondaryTeal.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.groups_rounded,
+                        color: secondaryTeal, size: 20),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Komunitas Belajar',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: primaryDarkBlue,
+                          fontSize: 18,
+                        ),
+                  ),
+                ],
+              ),
+              _buildViewAllButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const FriendsListScreen()),
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (friendsCount > 0)
+            SizedBox(
+              height: 100,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: friendsCount > 5 ? 5 : friendsCount,
+                itemBuilder: (context, index) {
+                  final friend = provider.addedFriends[index];
+                  return _buildAcademicFriendItem(friend);
+                },
+              ),
+            )
+          else
+            _buildEmptyAcademicFriendsState(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAcademicFriendItem(Friend friend) {
+    return Container(
+      width: 70,
+      margin: const EdgeInsets.only(right: 16),
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border:
+                  Border.all(color: secondaryTeal.withOpacity(0.3), width: 2),
+            ),
+            child: ClipOval(
+              child: CachedNetworkImage(
+                imageUrl: friend.picture,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  color: Colors.grey.shade200,
+                  child: const Icon(Icons.person, color: neutralGray),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: Colors.grey.shade200,
+                  child: const Icon(Icons.person, color: neutralGray),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            friend.name.split(' ').first,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: primaryDarkBlue,
+            ),
+          ),
+          Text(
+            'Scholar',
+            style: TextStyle(
+              fontSize: 10,
+              color: neutralGray,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyAcademicFriendsState(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: secondaryTeal.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.groups_outlined, size: 32, color: secondaryTeal),
           ),
           const SizedBox(height: 12),
+          Text(
+            'Bergabung dengan Komunitas',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: primaryDarkBlue,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Temukan teman belajar untuk berkolaborasi dan berdiskusi',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: neutralGray, fontSize: 13),
+          ),
+          const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
               Navigator.push(
@@ -499,7 +953,18 @@ class _HomeContentState extends State<_HomeContent> {
                 MaterialPageRoute(builder: (_) => const FriendsListScreen()),
               );
             },
-            child: const Text('Cari Teman'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: secondaryTeal,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'Jelajahi Komunitas',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
