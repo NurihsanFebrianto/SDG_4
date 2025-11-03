@@ -7,7 +7,7 @@ import '../services/quiz_service.dart';
 class QuizProvider with ChangeNotifier {
   final QuizService _quizService = QuizService();
 
-  Map<String, List<QuizQuestion>> _allQuestions = {};
+  final Map<String, List<QuizQuestion>> _allQuestions = {};
   final Map<String, List<int?>> _answers = {};
   final Map<String, List<bool>> _locked = {};
   final Map<String, QuizResult> _results = {};
@@ -19,10 +19,11 @@ class QuizProvider with ChangeNotifier {
   String get error => _error;
   Map<String, QuizResult> get results => _results;
   bool get hasData => _allQuestions.isNotEmpty;
+
   List<String> get availableBabIds => _allQuestions.keys.toList();
 
   QuizProvider() {
-    print('🔄 QUIZ PROVIDER INITIALIZED');
+    debugPrint('🔄 QUIZ PROVIDER INITIALIZED');
     _loadAllQuiz();
     loadResults();
   }
@@ -33,16 +34,24 @@ class QuizProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      print('📡 LOADING QUIZ DATA FROM API...');
-      _allQuestions = await _quizService.fetchQuizFromApi();
-      _error = '';
-      print('✅ QUIZ DATA LOADED: ${_allQuestions.keys.length} bab');
-      print('📋 AVAILABLE BAB IDs: ${_allQuestions.keys.join(", ")}');
+      debugPrint('📡 LOADING QUIZ DATA FROM API...');
+      final fetched = await _quizService.fetchQuizFromApi();
+
+      if (fetched.isNotEmpty) {
+        _allQuestions
+          ..clear()
+          ..addAll(fetched);
+        debugPrint('✅ QUIZ DATA LOADED: ${_allQuestions.length} bab');
+      } else {
+        throw Exception("API returned empty data");
+      }
     } catch (e) {
-      print('❌ GAGAL LOAD QUIZ: $e');
+      debugPrint('❌ GAGAL LOAD QUIZ: $e');
       _error = e.toString();
-      _allQuestions = _quizService.getDummyQuiz();
-      print('🔄 MENGGUNAKAN DATA FALLBACK');
+      _allQuestions
+        ..clear()
+        ..addAll(_quizService.getDummyQuiz());
+      debugPrint('🔄 USING FALLBACK DATA');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -55,16 +64,20 @@ class QuizProvider with ChangeNotifier {
   }
 
   void loadQuestions(String babId) {
-    if (_allQuestions.containsKey(babId)) {
-      final questions = _allQuestions[babId]!;
-      _answers[babId] = List.filled(questions.length, null);
-      _locked[babId] = List.filled(questions.length, false);
-      print('✅ QUIZ INITIALIZED FOR: $babId (${questions.length} soal)');
-      notifyListeners();
-    } else {
-      print('⚠️ QUIZ TIDAK DITEMUKAN UNTUK: $babId');
-      print('📋 AVAILABLE BAB IDs: ${_allQuestions.keys.join(", ")}');
+    if (!_allQuestions.containsKey(babId)) {
+      debugPrint('⚠️ QUIZ NOT FOUND FOR: $babId');
+      return;
     }
+
+    if (_answers.containsKey(babId))
+      return; // Jangan reset ulang tanpa resetQuiz
+
+    final questions = _allQuestions[babId]!;
+    _answers[babId] = List<int?>.filled(questions.length, null);
+    _locked[babId] = List<bool>.filled(questions.length, false);
+
+    debugPrint('✅ QUIZ INIT: $babId (${questions.length} soal)');
+    notifyListeners();
   }
 
   List<QuizQuestion> getQuestions(String babId) {
@@ -88,8 +101,7 @@ class QuizProvider with ChangeNotifier {
   }
 
   int getAnsweredCount(String babId) {
-    if (_answers[babId] == null) return 0;
-    return _answers[babId]!.where((answer) => answer != null).length;
+    return _answers[babId]?.where((e) => e != null).length ?? 0;
   }
 
   bool isAllAnswered(String babId) {
@@ -98,62 +110,27 @@ class QuizProvider with ChangeNotifier {
     return total > 0 && total == answered;
   }
 
-  void selectAnswer(
-    BuildContext context,
-    String babId,
-    int qIndex,
-    int selectedIndex,
-  ) {
-    if (_locked[babId]?[qIndex] == true) {
-      print('⚠️ SOAL SUDAH TERKUNCI');
-      return;
-    }
-
-    final questions = _allQuestions[babId];
-    if (questions == null || qIndex >= questions.length) {
-      print('⚠️ INDEX SOAL TIDAK VALID');
-      return;
-    }
-
-    final question = questions[qIndex];
+  /// ✅ Logic jawaban ada di provider (UI hanya panggil)
+  /// return true = benar, false = salah
+  bool selectAnswer(String babId, int qIndex, int selectedIndex) {
+    if (_locked[babId]?[qIndex] == true) return false;
 
     _answers[babId]![qIndex] = selectedIndex;
     _locked[babId]![qIndex] = true;
+
     notifyListeners();
 
-    final bool isCorrect = selectedIndex == question.correctIndex;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        duration: const Duration(seconds: 3),
-        backgroundColor: isCorrect ? Colors.green : Colors.red,
-        content: Text(
-          isCorrect
-              ? '✅ Benar! ${question.explanation}'
-              : '❌ Salah! ${question.explanation}',
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-    );
+    final question = _allQuestions[babId]![qIndex];
+    return selectedIndex == question.correctIndex;
   }
 
   Future<QuizResult> submitQuiz(String babId) async {
-    final questions = _allQuestions[babId] ?? [];
+    final questions = getQuestions(babId);
     final answers = _answers[babId] ?? [];
 
     int correctCount = 0;
-    for (int i = 0; i < questions.length; i++) {
-      if (i < answers.length && answers[i] == questions[i].correctIndex) {
-        correctCount++;
-      }
+    for (var i = 0; i < questions.length; i++) {
+      if (answers[i] == questions[i].correctIndex) correctCount++;
     }
 
     final result = QuizResult(
@@ -166,62 +143,47 @@ class QuizProvider with ChangeNotifier {
 
     try {
       await DatabaseService.instance.saveQuizResult(result);
-      print('✅ QUIZ RESULT SAVED TO DATABASE');
+      debugPrint('✅ QUIZ RESULT SAVED TO DB');
     } catch (e) {
-      print('❌ ERROR SAVING QUIZ RESULT: $e');
+      debugPrint('❌ ERROR SAVE DB: $e');
     }
 
     notifyListeners();
-
-    print(
-        '📊 QUIZ SUBMITTED: ${result.score}/${result.totalQuestions} (${result.percentage.toStringAsFixed(1)}%)');
-
     return result;
   }
 
   Future<void> loadResults() async {
     try {
-      final savedResults = await DatabaseService.instance.getQuizResults();
+      final saved = await DatabaseService.instance.getQuizResults();
       _results
         ..clear()
-        ..addAll(savedResults);
-      print('✅ LOADED ${_results.length} SAVED QUIZ RESULTS');
+        ..addAll(saved);
+      debugPrint('✅ LOADED ${_results.length} SAVED RESULTS');
       notifyListeners();
     } catch (e) {
-      print('❌ ERROR LOADING QUIZ RESULTS: $e');
+      debugPrint('❌ ERROR LOAD RESULTS: $e');
     }
   }
 
-  QuizResult? getResult(String babId) {
-    return _results[babId];
-  }
+  QuizResult? getResult(String babId) => _results[babId];
 
   void resetQuiz(String babId) {
-    if (_allQuestions[babId] == null) {
-      print('⚠️ CANNOT RESET: Quiz tidak ditemukan untuk $babId');
-      return;
-    }
+    if (!_allQuestions.containsKey(babId)) return;
 
-    _answers[babId] = List.filled(_allQuestions[babId]!.length, null);
-    _locked[babId] = List.filled(_allQuestions[babId]!.length, false);
+    final len = _allQuestions[babId]!.length;
+    _answers[babId] = List<int?>.filled(len, null);
+    _locked[babId] = List<bool>.filled(len, false);
+    _results.remove(babId);
 
-    print('🔄 QUIZ RESET FOR: $babId');
+    debugPrint('🔄 RESET QUIZ: $babId');
     notifyListeners();
   }
 
   void resetAll() {
     _answers.clear();
     _locked.clear();
-    print('🔄 ALL QUIZ RESET');
-    notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    _answers.clear();
-    _locked.clear();
     _results.clear();
-    _allQuestions.clear();
-    super.dispose();
+    debugPrint('🔄 RESET ALL QUIZ');
+    notifyListeners();
   }
 }

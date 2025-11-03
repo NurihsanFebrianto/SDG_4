@@ -8,6 +8,23 @@ import 'detail_materi_screen.dart';
 import 'quiz_screen.dart';
 import 'quiz_result_screen.dart';
 
+// Academic Color Scheme (sesuai dengan HomeScreen)
+const Color primaryDarkBlue = Color(0xFF0A3D62);
+const Color primaryBlue = Color(0xFF1E3A8A);
+const Color primaryLightBlue = Color(0xFF0D47A1);
+
+const Color secondaryCyan = Color(0xFF0EA5E9);
+const Color secondaryBlue = Color(0xFF0284C7);
+const Color secondaryTeal = Color(0xFF14B8A6);
+
+const Color accentAmber = Color(0xFFFBBF24);
+const Color accentOrange = Color(0xFFF59E0B);
+
+const Color successGreen = Color(0xFF10B981);
+const Color warningYellow = Color(0xFFF59E0B);
+const Color errorRed = Color(0xFFEF4444);
+const Color neutralGray = Color(0xFF6B7280);
+
 class BabListScreen extends StatelessWidget {
   final Modul modul;
 
@@ -16,124 +33,191 @@ class BabListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final quizProvider = Provider.of<QuizProvider>(context);
+    final completedCount = _countCompletedQuiz(quizProvider);
+    final totalCount = modul.babList.length;
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Daftar Bab',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              'Struktur Pembelajaran',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
             ),
             Text(
               modul.nama,
-              style:
-                  const TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.white.withOpacity(0.9),
+              ),
             ),
           ],
         ),
         centerTitle: false,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: primaryDarkBlue,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(
         children: [
-          // Header Stats
+          // Academic Header Stats - FIXED LAYOUT
           Container(
             width: double.infinity,
-            margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.all(20),
+            margin: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Theme.of(context).primaryColor,
-                  Theme.of(context).primaryColor.withOpacity(0.7),
-                ],
+                colors: [primaryDarkBlue, primaryBlue],
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Theme.of(context).primaryColor.withOpacity(0.3),
-                  blurRadius: 15,
+                  color: primaryDarkBlue.withOpacity(0.3),
+                  blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
               ],
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.menu_book_rounded,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        modul.nama,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${modul.babList.length} Bab Tersedia',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 14,
-                        ),
+                      child: const Icon(
+                        Icons.menu_book_rounded,
+                        color: Colors.white,
+                        size: 32,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            modul.nama,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '$totalCount Bab Akademik Tersedia',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
+                const SizedBox(height: 16),
+                // FIXED: Better counter layout with proper alignment
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Progress Belajar',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '$completedCount dari $totalCount bab selesai',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Progress Indicator
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: LinearProgressIndicator(
+                        value: completedCount / totalCount,
+                        backgroundColor: Colors.grey.shade200,
+                        color: secondaryTeal,
+                        borderRadius: BorderRadius.circular(4),
+                        minHeight: 8,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      '${((completedCount / totalCount) * 100).toStringAsFixed(0)}%',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: primaryDarkBlue,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
                   child: Text(
-                    '${_countCompletedQuiz(quizProvider)}/${modul.babList.length}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                    'Progress Penyelesaian Modul',
+                    style: TextStyle(
+                      color: neutralGray,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
               ],
             ),
           ),
+          const SizedBox(height: 24),
 
           // Bab List
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
               itemCount: modul.babList.length,
               itemBuilder: (context, index) {
                 final bab = modul.babList[index];
                 final quizResult = quizProvider.results[bab.id];
 
-                return _BabCard(
+                return _AcademicBabCard(
                   bab: bab,
                   modul: modul,
                   index: index,
@@ -155,14 +239,14 @@ class BabListScreen extends StatelessWidget {
   }
 }
 
-class _BabCard extends StatelessWidget {
+class _AcademicBabCard extends StatelessWidget {
   final Bab bab;
   final Modul modul;
   final int index;
   final QuizResult? quizResult;
   final QuizProvider quizProvider;
 
-  const _BabCard({
+  const _AcademicBabCard({
     required this.bab,
     required this.modul,
     required this.index,
@@ -178,17 +262,24 @@ class _BabCard extends StatelessWidget {
   }
 
   Color _getStatusColor(double percent) {
-    if (percent >= 80) return Colors.green;
-    if (percent >= 60) return Colors.blue;
-    if (percent >= 50) return Colors.orange;
-    return Colors.red;
+    if (percent >= 80) return successGreen;
+    if (percent >= 60) return secondaryTeal;
+    if (percent >= 50) return accentOrange;
+    return errorRed;
   }
 
   String _getStatusText(double percent) {
-    if (percent >= 80) return 'Sangat Baik';
-    if (percent >= 60) return 'Baik';
-    if (percent >= 50) return 'Cukup';
-    return 'Perlu Belajar';
+    if (percent >= 80) return 'Excellent';
+    if (percent >= 60) return 'Good';
+    if (percent >= 50) return 'Fair';
+    return 'Need Practice';
+  }
+
+  IconData _getStatusIcon(double percent) {
+    if (percent >= 80) return Icons.emoji_events_rounded;
+    if (percent >= 60) return Icons.check_circle_rounded;
+    if (percent >= 50) return Icons.warning_amber_rounded;
+    return Icons.autorenew_rounded;
   }
 
   @override
@@ -197,158 +288,197 @@ class _BabCard extends StatelessWidget {
     final percent = _calculatePercent();
     final statusColor = _getStatusColor(percent);
     final statusText = _getStatusText(percent);
+    final statusIcon = _getStatusIcon(percent);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: hasQuizResult
-              ? statusColor.withOpacity(0.3)
-              : Colors.grey.withOpacity(0.2),
-          width: 1.5,
-        ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
+        border: Border.all(
+          color: hasQuizResult
+              ? statusColor.withOpacity(0.2)
+              : Colors.grey.withOpacity(0.1),
+          width: 1,
+        ),
       ),
       child: Column(
         children: [
           // Main Content - Tap to view materi
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => DetailMateriScreen(
-                    modulId: modul.id,
-                    modulNama: modul.nama,
-                    babId: bab.id,
-                    babNama: bab.judul,
-                    isiMateri: bab.konten,
-                  ),
-                ),
-              );
-            },
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  // Number Badge
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: hasQuizResult
-                            ? [statusColor, statusColor.withOpacity(0.7)]
-                            : [Colors.grey.shade400, Colors.grey.shade500],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: (hasQuizResult ? statusColor : Colors.grey)
-                              .withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${index + 1}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                      ),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => DetailMateriScreen(
+                      modulId: modul.id,
+                      modulNama: modul.nama,
+                      babId: bab.id,
+                      babNama: bab.judul,
+                      isiMateri: bab.konten,
                     ),
                   ),
-                  const SizedBox(width: 16),
-
-                  // Title & Status
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          bab.judul,
+                );
+              },
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    // Academic Number Badge
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: hasQuizResult
+                              ? [statusColor, statusColor.withOpacity(0.8)]
+                              : [primaryBlue, primaryLightBlue],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (hasQuizResult ? statusColor : primaryBlue)
+                                .withOpacity(0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${index + 1}',
                           style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                            height: 1.3,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 18,
                           ),
                         ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.description_outlined,
-                              size: 14,
-                              color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // Title & Academic Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            bab.judul,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                              color: primaryDarkBlue,
+                              height: 1.3,
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Baca Materi',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 13,
-                              ),
-                            ),
-                            if (hasQuizResult) ...[
-                              const SizedBox(width: 12),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 8),
+                          // FIXED: Using Wrap with proper constraints
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
-                                  vertical: 2,
+                                  vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: statusColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
+                                  color: primaryBlue.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Icon(
-                                      Icons.check_circle,
-                                      size: 12,
-                                      color: statusColor,
+                                      Icons.description_rounded,
+                                      size: 14,
+                                      color: primaryBlue,
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
-                                      statusText,
+                                      'Baca Materi',
                                       style: TextStyle(
-                                        color: statusColor,
-                                        fontSize: 11,
+                                        color: primaryBlue,
+                                        fontSize: 12,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
+                              if (hasQuizResult)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: statusColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: statusColor.withOpacity(0.3),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        statusIcon,
+                                        size: 14,
+                                        color: statusColor,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Flexible(
+                                        child: Text(
+                                          statusText,
+                                          style: TextStyle(
+                                            color: statusColor,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                             ],
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
 
-                  // Arrow Icon
-                  Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    color: Colors.grey[400],
-                    size: 16,
-                  ),
-                ],
+                    // Academic Arrow Icon
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: primaryBlue.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: primaryBlue,
+                        size: 16,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -357,113 +487,133 @@ class _BabCard extends StatelessWidget {
           if (hasQuizResult) ...[
             Container(
               decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.05),
+                color: statusColor.withOpacity(0.03),
                 borderRadius:
-                    const BorderRadius.vertical(bottom: Radius.circular(16)),
+                    const BorderRadius.vertical(bottom: Radius.circular(20)),
+                border: Border(
+                  top: BorderSide(
+                    color: statusColor.withOpacity(0.1),
+                    width: 1,
+                  ),
+                ),
               ),
-              child: InkWell(
-                onTap: () {
-                  // Navigate to quiz result
-                  final questions = quizProvider.getQuestions(bab.id);
-                  final answers = questions.asMap().entries.map((entry) {
-                    return quizProvider.getAnswer(bab.id, entry.key);
-                  }).toList();
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    // Navigate to quiz result
+                    final questions = quizProvider.getQuestions(bab.id);
+                    final answers = questions.asMap().entries.map((entry) {
+                      return quizProvider.getAnswer(bab.id, entry.key);
+                    }).toList();
 
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => QuizResultScreen(
-                        babId: bab.id,
-                        babNama: bab.judul,
-                        result: quizResult!,
-                        questions: questions,
-                        answers: answers,
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => QuizResultScreen(
+                          babId: bab.id,
+                          babNama: bab.judul,
+                          result: quizResult!,
+                          questions: questions,
+                          answers: answers,
+                        ),
                       ),
-                    ),
-                  );
-                },
-                borderRadius:
-                    const BorderRadius.vertical(bottom: Radius.circular(16)),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      // Score Circle
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: statusColor,
-                            width: 3,
+                    );
+                  },
+                  borderRadius:
+                      const BorderRadius.vertical(bottom: Radius.circular(20)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        // Academic Score Circle
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: statusColor,
+                              width: 3,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: statusColor.withOpacity(0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  '${percent.toStringAsFixed(0)}',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: statusColor,
+                                    height: 1,
+                                  ),
+                                ),
+                                Text(
+                                  '%',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: statusColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        child: Center(
+                        const SizedBox(width: 16),
+
+                        // Academic Score Info
+                        Expanded(
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${percent.toStringAsFixed(0)}',
+                                'Hasil Assessment',
                                 style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: statusColor,
-                                  height: 1,
+                                  fontSize: 13,
+                                  color: neutralGray,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
+                              const SizedBox(height: 6),
                               Text(
-                                '%',
+                                '${quizResult!.score}/${quizResult!.totalQuestions} Jawaban Benar',
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
                                   color: statusColor,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Tap untuk analisis detail',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: neutralGray,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
 
-                      // Score Info
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Hasil Quiz',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[700],
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${quizResult!.score}/${quizResult!.totalQuestions} Benar',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: statusColor,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Tap untuk lihat detail',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Action Buttons
-                      Column(
-                        children: [
-                          IconButton(
+                        // Academic Action Buttons
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: statusColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: IconButton(
                             onPressed: () {
                               Navigator.push(
                                 context,
@@ -478,67 +628,88 @@ class _BabCard extends StatelessWidget {
                             icon: Icon(
                               Icons.refresh_rounded,
                               color: statusColor,
+                              size: 22,
                             ),
-                            tooltip: 'Ulangi Quiz',
-                            style: IconButton.styleFrom(
-                              backgroundColor: statusColor.withOpacity(0.1),
-                            ),
+                            tooltip: 'Ulangi Assessment',
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ] else ...[
-            // Start Quiz Button
+            // Academic Start Quiz Button
             Container(
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.05),
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    secondaryTeal.withOpacity(0.1),
+                    secondaryCyan.withOpacity(0.05),
+                  ],
+                ),
                 borderRadius:
-                    const BorderRadius.vertical(bottom: Radius.circular(16)),
+                    const BorderRadius.vertical(bottom: Radius.circular(20)),
+                border: Border(
+                  top: BorderSide(
+                    color: secondaryTeal.withOpacity(0.1),
+                    width: 1,
+                  ),
+                ),
               ),
-              child: InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => QuizScreen(
-                        babId: bab.id,
-                        babNama: bab.judul,
-                      ),
-                    ),
-                  );
-                },
-                borderRadius:
-                    const BorderRadius.vertical(bottom: Radius.circular(16)),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.play_circle_outline_rounded,
-                        color: Colors.blue[700],
-                        size: 24,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Mulai Quiz',
-                        style: TextStyle(
-                          color: Colors.blue[700],
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => QuizScreen(
+                          babId: bab.id,
+                          babNama: bab.judul,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        Icons.arrow_forward_rounded,
-                        color: Colors.blue[700],
-                        size: 18,
-                      ),
-                    ],
+                    );
+                  },
+                  borderRadius:
+                      const BorderRadius.vertical(bottom: Radius.circular(20)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: secondaryTeal.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.play_arrow_rounded,
+                            color: secondaryTeal,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Mulai Assessment',
+                          style: TextStyle(
+                            color: secondaryTeal,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          color: secondaryTeal,
+                          size: 18,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

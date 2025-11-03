@@ -121,11 +121,17 @@ class _TambahCatatanScreenState extends State<TambahCatatanScreen> {
                                   fontWeight: FontWeight.w700,
                                   color: Colors.white,
                                 ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(height: 6),
+                              const SizedBox(height: 8),
+                              // FIXED: Menggunakan Wrap atau Flexible untuk mencegah overflow
                               Container(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 200, // Batas maksimum width
+                                ),
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
+                                  horizontal: 10,
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
@@ -133,17 +139,24 @@ class _TambahCatatanScreenState extends State<TambahCatatanScreen> {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Row(
-                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisSize:
+                                      MainAxisSize.min, // Penting: gunakan min
                                   children: [
                                     Icon(Icons.auto_stories_rounded,
-                                        color: Colors.white, size: 16),
+                                        color: Colors.white, size: 14),
                                     const SizedBox(width: 6),
-                                    Text(
-                                      'Bab: ${widget.babNama}',
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
+                                    Flexible(
+                                      // FIXED: Tambahkan Flexible di sini
+                                      child: Text(
+                                        'Bab: ${widget.babNama}',
+                                        style: const TextStyle(
+                                          fontSize:
+                                              12, // Ukuran font diperkecil
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ],
@@ -290,19 +303,9 @@ class _TambahCatatanScreenState extends State<TambahCatatanScreen> {
                 const SizedBox(height: 32),
 
                 // Save Button
-                Container(
+                SizedBox(
                   width: double.infinity,
                   height: 56,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: primaryBlue.withOpacity(0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
                   child: ElevatedButton(
                     onPressed: _simpanCatatan,
                     style: ElevatedButton.styleFrom(
@@ -311,19 +314,24 @@ class _TambahCatatanScreenState extends State<TambahCatatanScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      elevation: 0,
+                      elevation: 4,
+                      shadowColor: primaryBlue.withOpacity(0.3),
                     ),
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.save_alt_rounded, size: 22),
                         SizedBox(width: 10),
-                        Text(
-                          'Simpan Catatan Akademik',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.3,
+                        Flexible(
+                          child: Text(
+                            'Simpan Catatan Akademik',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],

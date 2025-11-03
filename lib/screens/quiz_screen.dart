@@ -50,7 +50,8 @@ class _QuizScreenState extends State<QuizScreen>
   Widget build(BuildContext context) {
     final quizProv = Provider.of<QuizProvider>(context);
     final questions = quizProv.getQuestions(widget.babId);
-    final answeredCount = _countAnswered(quizProv, widget.babId);
+    final answeredCount = quizProv.getAnsweredCount(
+        widget.babId); // ✅ FIXED: Gunakan method dari provider
     final totalCount = questions.length;
     final progressPercent = totalCount > 0 ? answeredCount / totalCount : 0.0;
 
@@ -442,12 +443,20 @@ class _QuizScreenState extends State<QuizScreen>
                                   onTap: locked
                                       ? null
                                       : () {
-                                          quizProv.selectAnswer(
-                                            context,
+                                          // ✅ FIXED: Panggil method yang benar dari provider
+                                          final isCorrect =
+                                              quizProv.selectAnswer(
                                             widget.babId,
                                             index,
                                             optIndex,
                                           );
+
+                                          // Optional: Tampilkan feedback langsung
+                                          if (isCorrect) {
+                                            _showCorrectFeedback(context);
+                                          } else {
+                                            _showWrongFeedback(context);
+                                          }
                                         },
                                   child: Container(
                                     margin: const EdgeInsets.only(bottom: 10),
@@ -565,18 +574,36 @@ class _QuizScreenState extends State<QuizScreen>
     );
   }
 
-  int _countAnswered(QuizProvider provider, String babId) {
-    final answers = provider
-        .getQuestions(babId)
-        .asMap()
-        .entries
-        .map((entry) {
-          return provider.getAnswer(babId, entry.key);
-        })
-        .where((answer) => answer != null)
-        .length;
+  void _showCorrectFeedback(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green[300]),
+            const SizedBox(width: 8),
+            const Text('Jawaban Benar!'),
+          ],
+        ),
+        backgroundColor: Colors.green[700],
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
 
-    return answers;
+  void _showWrongFeedback(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.error, color: Colors.red[300]),
+            const SizedBox(width: 8),
+            const Text('Jawaban Salah'),
+          ],
+        ),
+        backgroundColor: Colors.red[700],
+        duration: const Duration(seconds: 1),
+      ),
+    );
   }
 
   void _showResetDialog(BuildContext context, QuizProvider quizProv) {
@@ -623,33 +650,40 @@ class _QuizScreenState extends State<QuizScreen>
   }
 
   Future<void> _submitQuiz(BuildContext context, QuizProvider quizProv) async {
-    final questions = quizProv.getQuestions(widget.babId);
-    final answers = questions.asMap().entries.map((entry) {
-      return quizProv.getAnswer(widget.babId, entry.key);
-    }).toList();
+    try {
+      // Submit quiz dan dapatkan result
+      final result = await quizProv.submitQuiz(widget.babId);
+      final questions = quizProv.getQuestions(widget.babId);
 
-    // Submit quiz dan dapatkan result
-    final result = await quizProv.submitQuiz(widget.babId);
-
-    // Navigate ke result screen dan tunggu response
-    final shouldRetake = await Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => QuizResultScreen(
-          babId: widget.babId,
-          babNama: widget.babNama,
-          result: result,
-          questions: questions,
-          answers: answers,
+      // Navigate ke result screen dan tunggu response
+      final shouldRetake = await Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => QuizResultScreen(
+            babId: widget.babId,
+            babNama: widget.babNama,
+            result: result,
+            questions: questions,
+            answers: questions.asMap().entries.map((entry) {
+              return quizProv.getAnswer(widget.babId, entry.key);
+            }).toList(),
+          ),
         ),
-      ),
-    );
+      );
 
-    // Handle retake jika user kembali dengan flag 'retake'
-    if (shouldRetake == 'retake' && mounted) {
-      quizProv.resetQuiz(widget.babId);
-      // Reload screen dengan state baru
-      setState(() {});
+      // Handle retake jika user kembali dengan flag 'retake'
+      if (shouldRetake == 'retake' && mounted) {
+        quizProv.resetQuiz(widget.babId);
+        // Reload screen dengan state baru
+        setState(() {});
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error submitting quiz: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 }
