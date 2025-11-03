@@ -483,8 +483,8 @@ class _AcademicBabCard extends StatelessWidget {
             ),
           ),
 
-          // Quiz Section
-          if (hasQuizResult) ...[
+          // Quiz Section - Hanya menampilkan hasil, tanpa tombol ulangi
+          if (hasQuizResult)
             Container(
               decoration: BoxDecoration(
                 color: statusColor.withOpacity(0.03),
@@ -606,107 +606,18 @@ class _AcademicBabCard extends StatelessWidget {
                           ),
                         ),
 
-                        // Academic Action Buttons
+                        // Hapus tombol ulangi assessment
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             color: statusColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: IconButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => QuizScreen(
-                                    babId: bab.id,
-                                    babNama: bab.judul,
-                                  ),
-                                ),
-                              );
-                            },
-                            icon: Icon(
-                              Icons.refresh_rounded,
-                              color: statusColor,
-                              size: 22,
-                            ),
-                            tooltip: 'Ulangi Assessment',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ] else ...[
-            // Academic Start Quiz Button
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [
-                    secondaryTeal.withOpacity(0.1),
-                    secondaryCyan.withOpacity(0.05),
-                  ],
-                ),
-                borderRadius:
-                    const BorderRadius.vertical(bottom: Radius.circular(20)),
-                border: Border(
-                  top: BorderSide(
-                    color: secondaryTeal.withOpacity(0.1),
-                    width: 1,
-                  ),
-                ),
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => QuizScreen(
-                          babId: bab.id,
-                          babNama: bab.judul,
-                        ),
-                      ),
-                    );
-                  },
-                  borderRadius:
-                      const BorderRadius.vertical(bottom: Radius.circular(20)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: secondaryTeal.withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
                           child: Icon(
-                            Icons.play_arrow_rounded,
-                            color: secondaryTeal,
-                            size: 20,
+                            Icons.analytics_rounded,
+                            color: statusColor,
+                            size: 22,
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Mulai Assessment',
-                          style: TextStyle(
-                            color: secondaryTeal,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.arrow_forward_rounded,
-                          color: secondaryTeal,
-                          size: 18,
                         ),
                       ],
                     ),
@@ -714,7 +625,6 @@ class _AcademicBabCard extends StatelessWidget {
                 ),
               ),
             ),
-          ],
         ],
       ),
     );

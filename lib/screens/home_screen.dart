@@ -87,9 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: const Icon(Icons.school_outlined, size: 22),
               ),
-              onPressed: () async {
-                final isLoggedIn = await AuthPreferens().isLoggedIn();
-                if (!isLoggedIn) return;
+              onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const ProfileScreen()),

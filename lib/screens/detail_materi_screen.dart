@@ -6,6 +6,7 @@ import '../providers/quiz_provider.dart';
 import '../models/catatan.dart';
 import 'tambah_catatan_screen.dart';
 import 'quiz_screen.dart';
+import 'quiz_result_screen.dart';
 
 const Color primaryDarkBlue = Color(0xFF0A3D62);
 const Color primaryBlue = Color(0xFF1E3A8A);
@@ -47,8 +48,6 @@ class _DetailMateriScreenState extends State<DetailMateriScreen> {
   @override
   void initState() {
     super.initState();
-
-    // Load scroll position dari provider tanpa menyimpan reference
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadInitialScrollPosition();
     });
@@ -70,10 +69,7 @@ class _DetailMateriScreenState extends State<DetailMateriScreen> {
 
   @override
   void dispose() {
-    // Simpan scroll position sebelum dispose - tanpa access context
     _saveScrollPosition();
-
-    // Gunakan post frame callback untuk save ke provider
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userProvider = context.read<UserProvider>();
       userProvider.setLastScrollOffset(
@@ -82,16 +78,66 @@ class _DetailMateriScreenState extends State<DetailMateriScreen> {
         offset: _lastScrollOffset,
       );
     });
-
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _startNewQuizAttempt(QuizProvider quizProv) {
+    // RESET QUIZ SEBELUM MEMULAI - ini yang penting!
+    quizProv.resetQuiz(widget.babId);
+
+    // Navigate ke quiz screen
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => QuizScreen(
+          babId: widget.babId,
+          babNama: widget.babNama,
+        ),
+      ),
+    );
+  }
+
+  void _showRetakeConfirmationDialog(QuizProvider quizProv) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.refresh_rounded, color: accentOrange),
+            const SizedBox(width: 12),
+            const Text('Ulangi Quiz?'),
+          ],
+        ),
+        content: const Text(
+          'Semua jawaban akan direset dan Anda akan memulai quiz dari awal. Hasil sebelumnya tetap tersimpan.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _startNewQuizAttempt(quizProv);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: accentOrange,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Ya, Mulai Ulang'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final catProv = context.watch<CatatanProvider>();
     final quizProv = context.watch<QuizProvider>();
-    final userProv = context.read<UserProvider>(); // Read sekali untuk init
+    final userProv = context.read<UserProvider>();
 
     // Set materi terakhir dibuka di build
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -133,33 +179,6 @@ class _DetailMateriScreenState extends State<DetailMateriScreen> {
         backgroundColor: primaryDarkBlue,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.quiz_outlined, size: 22),
-              ),
-              tooltip: 'Mulai Assessment',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => QuizScreen(
-                      babId: widget.babId,
-                      babNama: widget.babNama,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -616,18 +635,24 @@ class _DetailMateriScreenState extends State<DetailMateriScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => QuizScreen(
-                            babId: widget.babId,
-                            babNama: widget.babNama,
+                      if (hasResult) {
+                        // TAMPILKAN DIALOG KONFIRMASI UNTUK RESET
+                        _showRetakeConfirmationDialog(quizProv);
+                      } else {
+                        // LANGSUNG MULAI JIKA BELUM PERNAH
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => QuizScreen(
+                              babId: widget.babId,
+                              babNama: widget.babNama,
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: secondaryTeal,
+                      backgroundColor: hasResult ? accentOrange : secondaryTeal,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
@@ -659,6 +684,39 @@ class _DetailMateriScreenState extends State<DetailMateriScreen> {
                     ),
                   ),
                 ),
+                if (hasResult) ...[
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: () {
+                      // Lihat hasil tanpa reset
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => QuizResultScreen(
+                            babId: widget.babId,
+                            babNama: widget.babNama,
+                            result: quizProv.results[widget.babId]!,
+                            questions: quizProv.getQuestions(widget.babId),
+                            answers: quizProv
+                                .getQuestions(widget.babId)
+                                .asMap()
+                                .entries
+                                .map((entry) =>
+                                    quizProv.getAnswer(widget.babId, entry.key))
+                                .toList(),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'Lihat Hasil Sebelumnya',
+                      style: TextStyle(
+                        color: secondaryBlue,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

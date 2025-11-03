@@ -12,6 +12,10 @@ class QuizProvider with ChangeNotifier {
   final Map<String, List<bool>> _locked = {};
   final Map<String, QuizResult> _results = {};
 
+  // Map untuk menyimpan attempt baru yang belum di-submit
+  final Map<String, List<int?>> _pendingAttempts = {};
+  final Map<String, List<bool>> _pendingLocks = {};
+
   bool _isLoading = false;
   String _error = '';
 
@@ -69,8 +73,8 @@ class QuizProvider with ChangeNotifier {
       return;
     }
 
-    if (_answers.containsKey(babId))
-      return; // Jangan reset ulang tanpa resetQuiz
+    // Jangan reset jika sudah ada attempt yang sedang berjalan
+    if (_pendingAttempts.containsKey(babId)) return;
 
     final questions = _allQuestions[babId]!;
     _answers[babId] = List<int?>.filled(questions.length, null);
@@ -85,11 +89,13 @@ class QuizProvider with ChangeNotifier {
   }
 
   bool isLocked(String babId, int index) {
-    return _locked[babId]?[index] ?? false;
+    // Prioritaskan pending attempt, lalu yang aktif
+    return _pendingLocks[babId]?[index] ?? _locked[babId]?[index] ?? false;
   }
 
   int? getAnswer(String babId, int index) {
-    return _answers[babId]?[index];
+    // Prioritaskan pending attempt, lalu yang aktif
+    return _pendingAttempts[babId]?[index] ?? _answers[babId]?[index];
   }
 
   bool hasQuiz(String babId) {
@@ -101,6 +107,11 @@ class QuizProvider with ChangeNotifier {
   }
 
   int getAnsweredCount(String babId) {
+    // Hitung dari pending attempt dulu, lalu yang aktif
+    final pendingAnswers = _pendingAttempts[babId];
+    if (pendingAnswers != null) {
+      return pendingAnswers.where((e) => e != null).length;
+    }
     return _answers[babId]?.where((e) => e != null).length ?? 0;
   }
 
@@ -110,23 +121,60 @@ class QuizProvider with ChangeNotifier {
     return total > 0 && total == answered;
   }
 
-  /// ✅ Logic jawaban ada di provider (UI hanya panggil)
-  /// return true = benar, false = salah
+  /// ✅ Logic jawaban - gunakan pending attempt jika ada
   bool selectAnswer(String babId, int qIndex, int selectedIndex) {
-    if (_locked[babId]?[qIndex] == true) return false;
+    // Gunakan pending attempt jika sedang retake
+    if (_pendingAttempts.containsKey(babId)) {
+      if (_pendingLocks[babId]?[qIndex] == true) return false;
 
-    _answers[babId]![qIndex] = selectedIndex;
-    _locked[babId]![qIndex] = true;
+      _pendingAttempts[babId]![qIndex] = selectedIndex;
+      _pendingLocks[babId]![qIndex] = true;
 
-    notifyListeners();
+      notifyListeners();
 
-    final question = _allQuestions[babId]![qIndex];
-    return selectedIndex == question.correctIndex;
+      final question = _allQuestions[babId]![qIndex];
+      return selectedIndex == question.correctIndex;
+    }
+    // Normal flow
+    else {
+      if (_locked[babId]?[qIndex] == true) return false;
+
+      _answers[babId]![qIndex] = selectedIndex;
+      _locked[babId]![qIndex] = true;
+
+      notifyListeners();
+
+      final question = _allQuestions[babId]![qIndex];
+      return selectedIndex == question.correctIndex;
+    }
   }
 
+  /// ✅ BUAT METHOD UNTUK MEMULAI ATTEMPT BARU
+  void startNewAttempt(String babId) {
+    if (!_allQuestions.containsKey(babId)) return;
+
+    final len = _allQuestions[babId]!.length;
+
+    // RESET STATE JAWABAN YANG AKTIF
+    _answers[babId] = List<int?>.filled(len, null);
+    _locked[babId] = List<bool>.filled(len, false);
+
+    // Juga reset pending attempts jika ada
+    _pendingAttempts.remove(babId);
+    _pendingLocks.remove(babId);
+
+    debugPrint('🔄 NEW ATTEMPT STARTED: $babId (state reset)');
+    notifyListeners();
+  }
+
+  /// ✅ SUBMIT QUIZ - handle both normal dan pending attempts
   Future<QuizResult> submitQuiz(String babId) async {
     final questions = getQuestions(babId);
-    final answers = _answers[babId] ?? [];
+
+    // Gunakan pending attempt jika ada, else gunakan yang normal
+    final answers = _pendingAttempts.containsKey(babId)
+        ? _pendingAttempts[babId]!
+        : _answers[babId] ?? [];
 
     int correctCount = 0;
     for (var i = 0; i < questions.length; i++) {
@@ -139,7 +187,16 @@ class QuizProvider with ChangeNotifier {
       totalQuestions: questions.length,
     );
 
+    // ✅ HASIL LAMA DI-REPLACE HANYA SETELAH SUBMIT BERHASIL
     _results[babId] = result;
+
+    // Jika ini adalah pending attempt, pindahkan ke state normal
+    if (_pendingAttempts.containsKey(babId)) {
+      _answers[babId] = List.from(_pendingAttempts[babId]!);
+      _locked[babId] = List.from(_pendingLocks[babId]!);
+      _pendingAttempts.remove(babId);
+      _pendingLocks.remove(babId);
+    }
 
     try {
       await DatabaseService.instance.saveQuizResult(result);
@@ -150,6 +207,38 @@ class QuizProvider with ChangeNotifier {
 
     notifyListeners();
     return result;
+  }
+
+  /// ✅ RESET QUIZ - reset semua state jawaban
+  void resetQuiz(String babId) {
+    if (!_allQuestions.containsKey(babId)) return;
+
+    final len = _allQuestions[babId]!.length;
+
+    // Reset semua state jawaban
+    _answers[babId] = List<int?>.filled(len, null);
+    _locked[babId] = List<bool>.filled(len, false);
+    _pendingAttempts.remove(babId);
+    _pendingLocks.remove(babId);
+
+    // JANGAN hapus results di sini - biarkan hasil lama tetap tersimpan
+    // _results.remove(babId); // ← JANGAN lakukan ini
+
+    debugPrint('🔄 QUIZ RESET: $babId (all answer state cleared)');
+    notifyListeners();
+  }
+
+  /// ✅ CEK APAKAH SEDANG DALAM ATTEMPT BARU
+  bool isInNewAttempt(String babId) {
+    return _pendingAttempts.containsKey(babId);
+  }
+
+  /// ✅ BATALKAN ATTEMPT BARU DAN KEMBALI KE STATE SEBELUMNYA
+  void cancelNewAttempt(String babId) {
+    _pendingAttempts.remove(babId);
+    _pendingLocks.remove(babId);
+    debugPrint('❌ NEW ATTEMPT CANCELLED: $babId');
+    notifyListeners();
   }
 
   Future<void> loadResults() async {
@@ -167,21 +256,11 @@ class QuizProvider with ChangeNotifier {
 
   QuizResult? getResult(String babId) => _results[babId];
 
-  void resetQuiz(String babId) {
-    if (!_allQuestions.containsKey(babId)) return;
-
-    final len = _allQuestions[babId]!.length;
-    _answers[babId] = List<int?>.filled(len, null);
-    _locked[babId] = List<bool>.filled(len, false);
-    _results.remove(babId);
-
-    debugPrint('🔄 RESET QUIZ: $babId');
-    notifyListeners();
-  }
-
   void resetAll() {
     _answers.clear();
     _locked.clear();
+    _pendingAttempts.clear();
+    _pendingLocks.clear();
     _results.clear();
     debugPrint('🔄 RESET ALL QUIZ');
     notifyListeners();
