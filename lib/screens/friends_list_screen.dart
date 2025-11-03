@@ -269,6 +269,7 @@ class _FriendsListScreenState extends State<FriendsListScreen> {
           ),
           const SizedBox(width: 12),
           Expanded(
+            // FIX: Added Expanded to prevent overflow
             child: Text(
               title,
               style: const TextStyle(
@@ -276,6 +277,8 @@ class _FriendsListScreenState extends State<FriendsListScreen> {
                 fontWeight: FontWeight.w700,
                 color: primaryDarkBlue,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           Container(
@@ -356,6 +359,8 @@ class _AcademicFriendCard extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start, // FIX: Changed to start
               children: [
                 // Profile Avatar
                 Container(
@@ -390,11 +395,12 @@ class _AcademicFriendCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 16),
 
-                // User Info
+                // User Info - FIXED: Added Expanded and proper constraints
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Name
                       Text(
                         friend.name,
                         style: const TextStyle(
@@ -406,6 +412,8 @@ class _AcademicFriendCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
+
+                      // Email
                       Text(
                         friend.email,
                         style: TextStyle(
@@ -415,20 +423,25 @@ class _AcademicFriendCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 4),
+
+                      // Location
                       Row(
                         children: [
                           Icon(Icons.location_on_rounded,
                               size: 12, color: neutralGray),
                           const SizedBox(width: 4),
-                          Text(
-                            friend.location,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: neutralGray,
+                          Expanded(
+                            // FIX: Added Expanded for location text
+                            child: Text(
+                              friend.location,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: neutralGray,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -437,6 +450,7 @@ class _AcademicFriendCard extends StatelessWidget {
                 ),
 
                 // Action Button
+                const SizedBox(width: 8), // FIX: Added spacing
                 Container(
                   width: 40,
                   height: 40,
