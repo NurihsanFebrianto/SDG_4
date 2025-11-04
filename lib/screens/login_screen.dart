@@ -214,9 +214,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       final user = await AuthFirebase().signInWithGoogle();
 
-                      if (user != null) {
-                        // ✅ Langsung masuk ke halaman Home
-                        if (!mounted) return;
+                      if (user != null && mounted) {
+                        await context.read<AuthProvider>().login();
+                        context.read<UserProvider>().login(
+                              nama:
+                                  user.displayName ?? user.email ?? "Pengguna",
+                              umur: 0,
+                              jenisKelamin: 'Tidak diketahui',
+                            );
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(builder: (_) => const HomeScreen()),

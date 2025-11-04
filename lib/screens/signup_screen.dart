@@ -58,24 +58,14 @@ class _SignupScreenState extends State<SignupScreen> {
     }
 
     setState(() => isLoading = true);
+    final user = await AuthFirebase().signUp(email, password, fullName);
 
-    // ✅ Register dengan Firebase
-    final uid = await AuthFirebase().signUp(email, password);
-
-    if (uid != null) {
-      // ✅ Simpan nama user ke provider
+    if (user != null) {
       context.read<UserProvider>().login(
-            nama: fullName,
+            nama: user.displayName ?? fullName,
             umur: 0,
             jenisKelamin: 'Tidak diketahui',
           );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: const Text('Berhasil daftar, silakan login!'),
-            backgroundColor: Colors.green[400]),
-      );
-
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -84,9 +74,10 @@ class _SignupScreenState extends State<SignupScreen> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: const Text('Registrasi gagal, coba lagi.'),
-            backgroundColor: Colors.red[400]),
+        const SnackBar(
+          content: Text('Registrasi gagal, coba lagi.'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
 
