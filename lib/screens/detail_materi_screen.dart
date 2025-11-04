@@ -805,7 +805,7 @@ class _DetailMateriScreenState extends State<DetailMateriScreen> {
     if (score >= 4) return 'Excellent';
     if (score >= 3) return 'Good';
     if (score >= 2) return 'Fair';
-    return 'Need Improvement';
+    return 'Perbaiki lagi';
   }
 
   Color _getScoreColor(int score) {
