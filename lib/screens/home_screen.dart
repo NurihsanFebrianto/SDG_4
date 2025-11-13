@@ -1,10 +1,16 @@
+import 'package:aplikasi_materi_kurikulum/models/pengumuman_model.dart';
 import 'package:aplikasi_materi_kurikulum/providers/progress_provider.dart';
 import 'package:aplikasi_materi_kurikulum/providers/user_provider.dart';
+import 'package:aplikasi_materi_kurikulum/screens/detail_pengumuman_screen.dart';
+import 'package:aplikasi_materi_kurikulum/screens/pengumuman_list_screen.dart';
 import 'package:aplikasi_materi_kurikulum/screens/progress_list_Screen.dart';
 import 'package:aplikasi_materi_kurikulum/services/auth_preferens.dart';
 import 'package:aplikasi_materi_kurikulum/screens/friends_list_screen.dart';
 import 'package:aplikasi_materi_kurikulum/screens/modul_list_screen.dart';
+import 'package:aplikasi_materi_kurikulum/screens/pengumuman_list_screen.dart';
+import 'package:aplikasi_materi_kurikulum/services/pengumuman_service.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:aplikasi_materi_kurikulum/screens/catatan_screen.dart';
@@ -196,7 +202,7 @@ class _HomeContentState extends State<_HomeContent> {
     super.initState();
     Future.microtask(() {
       final userId = "1";
-      context.read<ProgressProvider>().getProgress(userId);
+      // context.read<ProgressProvider>().getProgress(userId);
     });
   }
 
@@ -210,6 +216,8 @@ class _HomeContentState extends State<_HomeContent> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildAcademicWelcomeSection(context),
+          const SizedBox(height: 32),
+          _buildAnnouncementSection(context),
           const SizedBox(height: 32),
           _buildQuickActions(context),
           const SizedBox(height: 32),
@@ -298,6 +306,241 @@ class _HomeContentState extends State<_HomeContent> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAnnouncementSection(BuildContext context) {
+    return StreamBuilder<List<Pengumuman>>(
+      stream: PengumumanService.streamPengumuman(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFF1E3A5F),
+            ),
+          );
+        } else if (snapshot.hasError) {
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.red[50],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.red[300]),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    "Terjadi kesalahan: ${snapshot.error}",
+                    style: TextStyle(color: Colors.red[700], fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.notifications_none,
+                    color: Colors.grey[400], size: 32),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    "Belum ada pengumuman terbaru.",
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final pengumumanList = snapshot.data!;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Informasi & Pengumuman",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E3A5F),
+                    fontSize: 18,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PengumumanListScreen(),
+                      ),
+                    );
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFF2D5F8D),
+                  ),
+                  child: const Text(
+                    "Lihat Semua",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // LIST HORIZONTAL
+            SizedBox(
+              height: 180,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: pengumumanList.length,
+                itemBuilder: (context, index) {
+                  final p = pengumumanList[index];
+
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => DetailPengumumanScreen(pengumuman: p),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: 260,
+                      margin: const EdgeInsets.only(right: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    DetailPengumumanScreen(pengumuman: p),
+                              ),
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Icon di pojok kiri atas
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        gradient: const LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            Color(0xFF1E3A5F),
+                                            Color(0xFF2D5F8D),
+                                          ],
+                                        ),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(
+                                        Icons.announcement,
+                                        color: Colors.white,
+                                        size: 18,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+
+                                // Judul
+                                Text(
+                                  p.judul,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                    color: Color(0xFF1E3A5F),
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 8),
+
+                                // Deskripsi
+                                Expanded(
+                                  child: Text(
+                                    p.deskripsi,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 13,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
+
+                                // Tanggal
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.calendar_today,
+                                      size: 12,
+                                      color: Colors.grey[500],
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      p.tanggal,
+                                      style: TextStyle(
+                                        color: Colors.grey[500],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
