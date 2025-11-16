@@ -579,7 +579,7 @@ class _HomeContentState extends State<_HomeContent> {
               child: _buildAcademicActionCard(
                 context,
                 icon: Icons.groups_rounded,
-                title: 'Komunitas',
+                title: 'Teman',
                 subtitle: 'Kolaborasi belajar',
                 color: secondaryTeal,
                 onTap: () {
@@ -1173,7 +1173,7 @@ class _HomeContentState extends State<_HomeContent> {
           ),
           const SizedBox(height: 12),
           Text(
-            'Bergabung dengan Komunitas',
+            'Teman Anda',
             style: TextStyle(
               fontWeight: FontWeight.w600,
               color: primaryDarkBlue,
@@ -1182,7 +1182,7 @@ class _HomeContentState extends State<_HomeContent> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Temukan teman belajar untuk berkolaborasi dan berdiskusi',
+            'Belum memiliki teman? Ayo segera cari teman untuk berkolaborasi dan berdiskusi',
             textAlign: TextAlign.center,
             style: TextStyle(color: neutralGray, fontSize: 13),
           ),
@@ -1203,7 +1203,7 @@ class _HomeContentState extends State<_HomeContent> {
               ),
             ),
             child: const Text(
-              'Jelajahi Komunitas',
+              'Jelajahi Teman',
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
