@@ -4,22 +4,19 @@ import '../models/modul.dart';
 import '../models/bab.dart';
 import '../models/quiz_result.dart';
 import '../providers/quiz_provider.dart';
+import '../services/reading_time_service.dart';
 import 'detail_materi_screen.dart';
-import 'quiz_screen.dart';
 import 'quiz_result_screen.dart';
 
-// Academic Color Scheme (sesuai dengan HomeScreen)
+// Academic Color Scheme
 const Color primaryDarkBlue = Color(0xFF0A3D62);
 const Color primaryBlue = Color(0xFF1E3A8A);
 const Color primaryLightBlue = Color(0xFF0D47A1);
-
 const Color secondaryCyan = Color(0xFF0EA5E9);
 const Color secondaryBlue = Color(0xFF0284C7);
 const Color secondaryTeal = Color(0xFF14B8A6);
-
 const Color accentAmber = Color(0xFFFBBF24);
 const Color accentOrange = Color(0xFFF59E0B);
-
 const Color successGreen = Color(0xFF10B981);
 const Color warningYellow = Color(0xFFF59E0B);
 const Color errorRed = Color(0xFFEF4444);
@@ -67,7 +64,7 @@ class BabListScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // Academic Header Stats - FIXED LAYOUT
+          // Academic Header Stats
           Container(
             width: double.infinity,
             margin: const EdgeInsets.all(20),
@@ -131,7 +128,6 @@ class BabListScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                // FIXED: Better counter layout with proper alignment
                 Row(
                   children: [
                     Expanded(
@@ -173,7 +169,7 @@ class BabListScreen extends StatelessWidget {
                   children: [
                     Expanded(
                       child: LinearProgressIndicator(
-                        value: completedCount / totalCount,
+                        value: totalCount > 0 ? completedCount / totalCount : 0,
                         backgroundColor: Colors.grey.shade200,
                         color: secondaryTeal,
                         borderRadius: BorderRadius.circular(4),
@@ -182,7 +178,7 @@ class BabListScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      '${((completedCount / totalCount) * 100).toStringAsFixed(0)}%',
+                      '${totalCount > 0 ? ((completedCount / totalCount) * 100).toStringAsFixed(0) : 0}%',
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         color: primaryDarkBlue,
@@ -218,6 +214,7 @@ class BabListScreen extends StatelessWidget {
                 final quizResult = quizProvider.results[bab.id];
 
                 return _AcademicBabCard(
+                  key: ValueKey(bab.id),
                   bab: bab,
                   modul: modul,
                   index: index,
@@ -239,7 +236,7 @@ class BabListScreen extends StatelessWidget {
   }
 }
 
-class _AcademicBabCard extends StatelessWidget {
+class _AcademicBabCard extends StatefulWidget {
   final Bab bab;
   final Modul modul;
   final int index;
@@ -247,6 +244,7 @@ class _AcademicBabCard extends StatelessWidget {
   final QuizProvider quizProvider;
 
   const _AcademicBabCard({
+    super.key,
     required this.bab,
     required this.modul,
     required this.index,
@@ -254,11 +252,40 @@ class _AcademicBabCard extends StatelessWidget {
     required this.quizProvider,
   });
 
+  @override
+  State<_AcademicBabCard> createState() => _AcademicBabCardState();
+}
+
+class _AcademicBabCardState extends State<_AcademicBabCard> {
+  final ReadingTimeService _readingService = ReadingTimeService();
+  double _readingProgress = 0.0;
+  int _readingTimeSeconds = 0;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProgress();
+  }
+
+  Future<void> _loadProgress() async {
+    final progress = await _readingService.getProgressPercent(widget.bab.id);
+    final seconds = await _readingService.getReadingTime(widget.bab.id);
+
+    if (mounted) {
+      setState(() {
+        _readingProgress = progress;
+        _readingTimeSeconds = seconds;
+        _isLoading = false;
+      });
+    }
+  }
+
   double _calculatePercent() {
-    if (quizResult == null) return 0.0;
-    final total = quizResult!.totalQuestions;
+    if (widget.quizResult == null) return 0.0;
+    final total = widget.quizResult!.totalQuestions;
     if (total == 0) return 0.0;
-    return (quizResult!.score / total) * 100.0;
+    return (widget.quizResult!.score / total) * 100.0;
   }
 
   Color _getStatusColor(double percent) {
@@ -284,7 +311,7 @@ class _AcademicBabCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasQuizResult = quizResult != null;
+    final hasQuizResult = widget.quizResult != null;
     final percent = _calculatePercent();
     final statusColor = _getStatusColor(percent);
     final statusText = _getStatusText(percent);
@@ -315,19 +342,21 @@ class _AcademicBabCard extends StatelessWidget {
           Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () {
-                Navigator.push(
+              onTap: () async {
+                await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => DetailMateriScreen(
-                      modulId: modul.id,
-                      modulNama: modul.nama,
-                      babId: bab.id,
-                      babNama: bab.judul,
-                      isiMateri: bab.konten,
+                      modulId: widget.modul.id,
+                      modulNama: widget.modul.nama,
+                      babId: widget.bab.id,
+                      babNama: widget.bab.judul,
+                      isiMateri: widget.bab.konten,
                     ),
                   ),
                 );
+                // Reload progress after returning
+                _loadProgress();
               },
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(20)),
@@ -359,7 +388,7 @@ class _AcademicBabCard extends StatelessWidget {
                       ),
                       child: Center(
                         child: Text(
-                          '${index + 1}',
+                          '${widget.index + 1}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
@@ -376,7 +405,7 @@ class _AcademicBabCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            bab.judul,
+                            widget.bab.judul,
                             style: const TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 16,
@@ -387,7 +416,6 @@ class _AcademicBabCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 8),
-                          // FIXED: Using Wrap with proper constraints
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
@@ -483,7 +511,66 @@ class _AcademicBabCard extends StatelessWidget {
             ),
           ),
 
-          // Quiz Section - Hanya menampilkan hasil, tanpa tombol ulangi
+          // Reading Progress Bar
+          if (!_isLoading && _readingProgress > 0)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: secondaryTeal.withOpacity(0.05),
+                border: Border(
+                  top: BorderSide(
+                    color: secondaryTeal.withOpacity(0.1),
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.schedule_rounded,
+                            size: 14,
+                            color: secondaryTeal,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Waktu Baca: ${_readingService.formatTime(_readingTimeSeconds)}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: neutralGray,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        '${_readingProgress.toStringAsFixed(0)}%',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: secondaryTeal,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  LinearProgressIndicator(
+                    value: _readingProgress / 100,
+                    backgroundColor: Colors.grey.shade200,
+                    color: secondaryTeal,
+                    borderRadius: BorderRadius.circular(4),
+                    minHeight: 6,
+                  ),
+                ],
+              ),
+            ),
+
+          // Quiz Section
           if (hasQuizResult)
             Container(
               decoration: BoxDecoration(
@@ -501,19 +588,20 @@ class _AcademicBabCard extends StatelessWidget {
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: () {
-                    // Navigate to quiz result
-                    final questions = quizProvider.getQuestions(bab.id);
+                    final questions =
+                        widget.quizProvider.getQuestions(widget.bab.id);
                     final answers = questions.asMap().entries.map((entry) {
-                      return quizProvider.getAnswer(bab.id, entry.key);
+                      return widget.quizProvider
+                          .getAnswer(widget.bab.id, entry.key);
                     }).toList();
 
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => QuizResultScreen(
-                          babId: bab.id,
-                          babNama: bab.judul,
-                          result: quizResult!,
+                          babId: widget.bab.id,
+                          babNama: widget.bab.judul,
+                          result: widget.quizResult!,
                           questions: questions,
                           answers: answers,
                         ),
@@ -587,7 +675,7 @@ class _AcademicBabCard extends StatelessWidget {
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                '${quizResult!.score}/${quizResult!.totalQuestions} Jawaban Benar',
+                                '${widget.quizResult!.score}/${widget.quizResult!.totalQuestions} Jawaban Benar',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -606,7 +694,6 @@ class _AcademicBabCard extends StatelessWidget {
                           ),
                         ),
 
-                        // Hapus tombol ulangi assessment
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(

@@ -7,6 +7,7 @@ import '../models/catatan.dart';
 import 'tambah_catatan_screen.dart';
 import 'quiz_screen.dart';
 import 'quiz_result_screen.dart';
+import '../services/reading_time_service.dart';
 
 const Color primaryDarkBlue = Color(0xFF0A3D62);
 const Color primaryBlue = Color(0xFF1E3A8A);
@@ -42,12 +43,17 @@ class DetailMateriScreen extends StatefulWidget {
 }
 
 class _DetailMateriScreenState extends State<DetailMateriScreen> {
+  final ReadingTimeService _readingService = ReadingTimeService();
   final ScrollController _scrollController = ScrollController();
   double _lastScrollOffset = 0.0;
 
   @override
   void initState() {
     super.initState();
+    // Start reading tracking
+    _readingService.startReading(widget.modulId, widget.babId);
+
+    // Load scroll position
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadInitialScrollPosition();
     });
@@ -69,6 +75,10 @@ class _DetailMateriScreenState extends State<DetailMateriScreen> {
 
   @override
   void dispose() {
+    // Stop reading tracking
+    _readingService.stopReading();
+
+    // Save scroll position
     _saveScrollPosition();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userProvider = context.read<UserProvider>();
@@ -78,15 +88,16 @@ class _DetailMateriScreenState extends State<DetailMateriScreen> {
         offset: _lastScrollOffset,
       );
     });
+
     _scrollController.dispose();
     super.dispose();
   }
 
   void _startNewQuizAttempt(QuizProvider quizProv) {
-    // RESET QUIZ SEBELUM MEMULAI - ini yang penting!
+    // Reset quiz before starting
     quizProv.resetQuiz(widget.babId);
 
-    // Navigate ke quiz screen
+    // Navigate to quiz screen
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -139,7 +150,7 @@ class _DetailMateriScreenState extends State<DetailMateriScreen> {
     final quizProv = context.watch<QuizProvider>();
     final userProv = context.read<UserProvider>();
 
-    // Set materi terakhir dibuka di build
+    // Set materi terakhir dibuka
     WidgetsBinding.instance.addPostFrameCallback((_) {
       userProv.setMateriTerakhir(
         modulId: widget.modulId,
@@ -636,10 +647,8 @@ class _DetailMateriScreenState extends State<DetailMateriScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       if (hasResult) {
-                        // TAMPILKAN DIALOG KONFIRMASI UNTUK RESET
                         _showRetakeConfirmationDialog(quizProv);
                       } else {
-                        // LANGSUNG MULAI JIKA BELUM PERNAH
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -688,7 +697,6 @@ class _DetailMateriScreenState extends State<DetailMateriScreen> {
                   const SizedBox(height: 12),
                   TextButton(
                     onPressed: () {
-                      // Lihat hasil tanpa reset
                       Navigator.push(
                         context,
                         MaterialPageRoute(
