@@ -1060,7 +1060,7 @@ class _HomeContentState extends State<_HomeContent> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Komunitas Belajar',
+                    'Teman Belajar',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: primaryDarkBlue,
