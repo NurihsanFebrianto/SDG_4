@@ -4,14 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:provider/provider.dart';
 
-// ✅ Import global navigator
 import 'services/navigation_service.dart';
-
-// ✅ Import Notification Service
 import 'services/notification_service.dart';
 import 'services/local_notification_helper.dart';
 
-// ✅ Semua provider
 import 'providers/user_provider.dart';
 import 'providers/modul_provider.dart';
 import 'providers/catatan_provider.dart';
@@ -21,25 +17,23 @@ import 'providers/friends_provider.dart';
 import 'providers/progress_provider.dart';
 import 'providers/auth_provider.dart' as app_auth;
 
-// ✅ Screens
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 
-// ✅ Handler untuk notifikasi background
+/// ✅ Handler background FCM
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  print("✅ Background FCM: ${message.data}");
+  debugPrint("✅ Background FCM: ${message.data}");
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  // ✅ INIT local notifikasi
   await LocalNotificationHelper.init();
-
-  // ✅ FCM background handler
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  FirebaseMessaging.onBackgroundMessage(
+    _firebaseMessagingBackgroundHandler,
+  );
 
   runApp(const AppKurikulum());
 }
@@ -74,7 +68,7 @@ class AppKurikulum extends StatelessWidget {
   }
 }
 
-/// ✅ Pisahkan RootPage supaya initFCM berjalan setelah MaterialApp dibuat
+/// ✅ ROOTPAGE = TEMPAT SATU-SATUNYA LOAD PROFILE
 class RootPage extends StatefulWidget {
   const RootPage({super.key});
 
@@ -86,20 +80,33 @@ class _RootPageState extends State<RootPage> {
   @override
   void initState() {
     super.initState();
-    NotificationService.init(); // ✅ jalankan FCM listener
+
+    NotificationService.init();
+
+    /// ✅ LOAD PROFILE SEKALI SAAT APP DIBUKA
+    Future.microtask(() async {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await context.read<ProfileProvider>().loadUser();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        if (snap.hasData) return const HomeScreen();
+
+        if (snapshot.hasData) {
+          return const HomeScreen();
+        }
+
         return const LoginScreen();
       },
     );

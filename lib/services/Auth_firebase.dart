@@ -1,48 +1,88 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthFirebase {
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  User? getUser() => _firebaseAuth.currentUser;
-  bool get isLoggedIn => _firebaseAuth.currentUser != null;
+  // =====================================================
+  // GET CURRENT USER
+  // =====================================================
+  User? get currentUser => _auth.currentUser;
+  bool get isLoggedIn => currentUser != null;
 
-  /// ✅ Sign Up Email & Password + Update Nama
-  Future<User?> signUp(String email, String password, String fullname) async {
+  // =====================================================
+  // ✅ SIGN UP EMAIL + PASSWORD (NAMA & EMAIL SAJA)
+  // =====================================================
+  Future<User?> signUp({
+    required String email,
+    required String password,
+    required String name,
+  }) async {
     try {
-      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+      // 1️⃣ BUAT AKUN AUTH
+      final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      await userCredential.user?.updateDisplayName(fullname);
-      await userCredential.user?.reload();
+      final user = credential.user;
+      if (user == null) return null;
 
-      return _firebaseAuth.currentUser;
+      // 2️⃣ SET DISPLAY NAME
+      await user.updateDisplayName(name);
+      await user.reload();
+
+      // 3️⃣ SIMPAN DATA MINIMAL KE FIRESTORE
+      await _firestore.collection('users').doc(user.uid).set({
+        'uid': user.uid,
+        'name': name,
+        'email': email,
+
+        // DIISI SAAT EDIT PROFIL
+        'phone': '',
+        'jenisKelamin': '',
+        'asalSekolah': '',
+        'alamat': '',
+        'imagePath': '',
+
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      return _auth.currentUser;
     } catch (e) {
-      print("❌ Error SignUp: $e");
+      print('❌ Error SignUp: $e');
       return null;
     }
   }
 
-  /// ✅ Sign In Email
-  Future<User?> signInWithEmail(String email, String password) async {
+  // =====================================================
+  // ✅ LOGIN EMAIL & PASSWORD
+  // =====================================================
+  Future<User?> signInWithEmail(
+    String email,
+    String password,
+  ) async {
     try {
-      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
+      final credential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return userCredential.user;
+      return credential.user;
     } catch (e) {
-      print("❌ Login error: $e");
+      print('❌ Login error: $e');
       return null;
     }
   }
 
-  /// ✅ Sign In Google
+  // =====================================================
+  // ✅ LOGIN GOOGLE + AUTO BUAT DATA FIRESTORE
+  // =====================================================
   Future<User?> signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      final googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null;
 
       final googleAuth = await googleUser.authentication;
@@ -52,19 +92,40 @@ class AuthFirebase {
         accessToken: googleAuth.accessToken,
       );
 
-      final userCredential =
-          await _firebaseAuth.signInWithCredential(credential);
+      final userCredential = await _auth.signInWithCredential(credential);
 
-      await userCredential.user?.reload();
-      return _firebaseAuth.currentUser;
+      final user = userCredential.user;
+      if (user == null) return null;
+
+      // ✅ CEK DATA FIRESTORE
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+
+      if (!doc.exists) {
+        await _firestore.collection('users').doc(user.uid).set({
+          'uid': user.uid,
+          'name': user.displayName ?? '',
+          'email': user.email ?? '',
+          'phone': '',
+          'jenisKelamin': '',
+          'asalSekolah': '',
+          'alamat': '',
+          'imagePath': '',
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      return user;
     } catch (e) {
-      print("❌ Google Sign-In Error: $e");
+      print('❌ Google Sign-In Error: $e');
       return null;
     }
   }
 
+  // =====================================================
+  // ✅ LOGOUT
+  // =====================================================
   Future<void> signOut() async {
-    await GoogleSignIn().signOut();
-    await _firebaseAuth.signOut();
+    await _googleSignIn.signOut();
+    await _auth.signOut();
   }
 }

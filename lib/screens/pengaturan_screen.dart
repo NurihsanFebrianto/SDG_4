@@ -52,8 +52,8 @@ class PengaturanScreen extends StatelessWidget {
             context: context,
             icon: Icons.person_rounded,
             iconColor: secondaryTeal,
-            title: 'Edit Profile',
-            subtitle: 'Ubah informasi profil Anda',
+            title: 'Profile',
+            subtitle: 'Informasi profil Anda',
             onTap: () {
               Navigator.push(
                 context,

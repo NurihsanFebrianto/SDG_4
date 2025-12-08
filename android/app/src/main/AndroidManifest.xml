@@ -1,7 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     
-    <!-- ✅ TAMBAHIN INI UNTUK AKSES INTERNET -->
+    <!-- ✅ UNTUK AKSES INTERNET-->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Untuk ambil foto profil -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Untuk akses galeri di Android 13+ -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- Opsional - hanya dipakai di Android 12 ke bawah -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+
 
     <application
         android:label="sdg4"

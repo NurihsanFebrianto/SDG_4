@@ -2,38 +2,38 @@ import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
-// ✅ Import global navigator
+//  Import global navigator
 import 'navigation_service.dart';
 
-// ✅ Helper notifikasi lokal
+// Helper notifikasi lokal
 import 'local_notification_helper.dart';
 
-// ✅ Halaman detail pengumuman
+// Halaman detail pengumuman
 import '../screens/detail_pengumuman_screen_by_id.dart';
 
 class NotificationService {
   static Future<void> init() async {
     final messaging = FirebaseMessaging.instance;
 
-    // ✅ Minta izin notifikasi (iOS & Android 13+)
+    // Minta izin notifikasi (iOS & Android 13+)
     await messaging.requestPermission(
       alert: true,
       sound: true,
       badge: true,
     );
 
-    // ✅ Subscribe ke topik umum
+    //  Subscribe ke topik umum
     await messaging.subscribeToTopic("all");
-    print("✅ Subscribed to topic: all");
+    print(" Subscribed to topic: all");
 
-    // ✅ Ambil token FCM
+    //  Ambil token FCM
     String? token = await messaging.getToken();
-    print("✅ FCM Token: $token");
+    print(" FCM Token: $token");
 
-    // ✅ FUNGSI HANDLE KLIK NOTIF
+    //  FUNGSI HANDLE KLIK NOTIF
     Future<void> _handleClick(Map<String, dynamic> data) async {
-      print("➡️ HANDLE CLICK DIPANGGIL");
-      print("📦 DATA: $data");
+      print(" HANDLE CLICK DIPANGGIL");
+      print(" DATA: $data");
 
       final String? id = data["id"];
       if (id == null || id.isEmpty) {
@@ -41,7 +41,7 @@ class NotificationService {
         return;
       }
 
-      // ⏳ Tunggu sampai navigator siap
+      //  Tunggu sampai navigator siap
       int retry = 0;
       while (navigatorKey.currentState == null && retry < 10) {
         print("⏳ Menunggu navigator siap...");
@@ -54,7 +54,7 @@ class NotificationService {
         return;
       }
 
-      print("🚀 Navigasi ke DetailPengumumanScreenById($id)");
+      print(" Navigasi ke DetailPengumumanScreenById($id)");
       navigatorKey.currentState!.push(
         MaterialPageRoute(
           builder: (_) => DetailPengumumanScreenById(id: id),
@@ -62,10 +62,10 @@ class NotificationService {
       );
     }
 
-    // ✅ NOTIFIKASI SAAT APP AKTIF (foreground)
+    //  NOTIFIKASI SAAT APP AKTIF (foreground)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print("📩 FOREGROUND NOTIF");
-      print("📦 DATA: ${message.data}");
+      print(" FOREGROUND NOTIF");
+      print(" DATA: ${message.data}");
 
       if (message.notification != null) {
         LocalNotificationHelper.show(
@@ -76,20 +76,20 @@ class NotificationService {
       }
     });
 
-    // ✅ SAAT NOTIF DIKLIK DARI BACKGROUND
+    //  SAAT NOTIF DIKLIK DARI BACKGROUND
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print("📬 Dibuka dari background");
-      print("📦 DATA: ${message.data}");
+      print(" Dibuka dari background");
+      print(" DATA: ${message.data}");
       _handleClick(message.data);
     });
 
-    // ✅ SAAT APP DIBUKA DARI TERMINATED (mati total)
+    //  SAAT APP DIBUKA DARI TERMINATED (mati total)
     RemoteMessage? initialMessage =
         await FirebaseMessaging.instance.getInitialMessage();
 
     if (initialMessage != null) {
-      print("🚀 Dibuka dari terminated");
-      print("📦 DATA: ${initialMessage.data}");
+      print(" Dibuka dari terminated");
+      print(" DATA: ${initialMessage.data}");
       _handleClick(initialMessage.data);
     }
   }

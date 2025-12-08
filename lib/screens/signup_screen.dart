@@ -58,7 +58,11 @@ class _SignupScreenState extends State<SignupScreen> {
     }
 
     setState(() => isLoading = true);
-    final user = await AuthFirebase().signUp(email, password, fullName);
+    final user = await AuthFirebase().signUp(
+      email: email,
+      password: password,
+      name: fullName,
+    );
 
     if (user != null) {
       context.read<UserProvider>().login(
