@@ -7,7 +7,7 @@ import 'login_screen.dart';
 import 'home_screen.dart';
 import 'profile_detail_screen.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
