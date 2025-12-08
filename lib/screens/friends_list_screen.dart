@@ -40,7 +40,7 @@ class _FriendsListScreenState extends State<FriendsListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Komunitas Belajar',
+          'Teman Belajar',
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 20,
@@ -119,7 +119,7 @@ class _FriendsListScreenState extends State<FriendsListScreen> {
           ),
           const SizedBox(height: 20),
           Text(
-            'Memuat Komunitas...',
+            'Memuat Teman...',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,

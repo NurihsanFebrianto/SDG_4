@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:async'; // 🆕 Import untuk Timer
 import '../providers/catatan_provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/quiz_provider.dart';
@@ -8,6 +9,7 @@ import 'tambah_catatan_screen.dart';
 import 'quiz_screen.dart';
 import 'quiz_result_screen.dart';
 import '../services/reading_time_service.dart';
+import '../widgets/feedback_dialog.dart'; // 🆕 Import feedback dialog
 
 const Color primaryDarkBlue = Color(0xFF0A3D62);
 const Color primaryBlue = Color(0xFF1E3A8A);
@@ -47,6 +49,10 @@ class _DetailMateriScreenState extends State<DetailMateriScreen> {
   final ScrollController _scrollController = ScrollController();
   double _lastScrollOffset = 0.0;
 
+  // 🆕 Timer untuk check feedback
+  Timer? _feedbackCheckTimer;
+  bool _feedbackDialogShown = false;
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +63,49 @@ class _DetailMateriScreenState extends State<DetailMateriScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadInitialScrollPosition();
     });
+
+    // 🆕 Start timer untuk check feedback setiap 10 detik
+    _startFeedbackCheckTimer();
+  }
+
+  // 🆕 Start timer untuk check apakah sudah waktunya feedback
+  void _startFeedbackCheckTimer() {
+    _feedbackCheckTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => _checkAndShowFeedback(),
+    );
+  }
+
+  // 🆕 Check dan tampilkan feedback jika sudah waktunya
+  Future<void> _checkAndShowFeedback() async {
+    if (_feedbackDialogShown) return;
+
+    final shouldShow = await _readingService.shouldShowFeedback(widget.babId);
+
+    if (shouldShow && mounted) {
+      _feedbackDialogShown = true;
+      _showFeedbackDialog();
+    }
+  }
+
+  // 🆕 Show feedback dialog
+  Future<void> _showFeedbackDialog() async {
+    final currentTime = _readingService.getCurrentSessionTime();
+
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => FeedbackDialog(
+        babId: widget.babId,
+        babNama: widget.babNama,
+        readingDuration: currentTime,
+      ),
+    );
+
+    // Mark sebagai sudah ditampilkan (baik submitted atau skipped)
+    if (result != null) {
+      await _readingService.markFeedbackShown(widget.babId);
+    }
   }
 
   void _loadInitialScrollPosition() {
@@ -75,6 +124,9 @@ class _DetailMateriScreenState extends State<DetailMateriScreen> {
 
   @override
   void dispose() {
+    // 🆕 Cancel timer
+    _feedbackCheckTimer?.cancel();
+
     // Stop reading tracking
     _readingService.stopReading();
 

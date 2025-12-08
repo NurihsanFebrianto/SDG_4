@@ -10,6 +10,9 @@ class ReadingTimeService {
   String? _currentBabId;
   String? _currentModulId;
 
+  // 🆕 Threshold untuk feedback (3 menit = 180 detik)
+  static const int feedbackThreshold = 10;
+
   // Start tracking
   void startReading(String modulId, String babId) {
     _startTime = DateTime.now();
@@ -76,6 +79,36 @@ class ReadingTimeService {
       return prefs.getInt('reading_time_$babId') ?? 0;
     } catch (e) {
       return 0;
+    }
+  }
+
+  // 🆕 Get current session reading time (realtime)
+  int getCurrentSessionTime() {
+    if (_startTime == null) return 0;
+    return DateTime.now().difference(_startTime!).inSeconds;
+  }
+
+  // 🆕 Check if should show feedback
+  Future<bool> shouldShowFeedback(String babId) async {
+    // Check if already shown feedback
+    final prefs = await SharedPreferences.getInstance();
+    final shownKey = 'feedback_shown_$babId';
+    final hasShown = prefs.getBool(shownKey) ?? false;
+
+    if (hasShown) return false;
+
+    // Check if reading time >= threshold
+    final currentTime = getCurrentSessionTime();
+    return currentTime >= feedbackThreshold;
+  }
+
+  // 🆕 Mark feedback as shown for this bab
+  Future<void> markFeedbackShown(String babId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('feedback_shown_$babId', true);
+    } catch (e) {
+      // Silent fail
     }
   }
 
