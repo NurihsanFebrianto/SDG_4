@@ -375,7 +375,7 @@ class _HomeContentState extends State<_HomeContent> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  "Informasi & Pengumuman",
+                  "Pengumuman",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF1E3A5F),

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../providers/accessibility_provider.dart';
 import 'profile_screen.dart';
 
 // Academic Color Scheme
@@ -8,7 +11,7 @@ const Color primaryLightBlue = Color(0xFF0D47A1);
 const Color secondaryCyan = Color(0xFF0EA5E9);
 const Color secondaryBlue = Color(0xFF0284C7);
 const Color secondaryTeal = Color(0xFF14B8A6);
-const Color accentAmber = Color(0xFFFBBF24);
+const Color accentAmber = Color(0xFFFBF24);
 const Color accentOrange = Color(0xFFF59E0B);
 const Color successGreen = Color(0xFF10B981);
 const Color warningYellow = Color(0xFFF59E0B);
@@ -25,6 +28,23 @@ class PengaturanScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          // Accessibility Section
+          _buildSectionHeader('Aksesibilitas'),
+          const SizedBox(height: 12),
+          _buildSettingCard(
+            context: context,
+            icon: Icons.accessibility_new_rounded,
+            iconColor: secondaryTeal,
+            title: 'Pengaturan Aksesibilitas',
+            subtitle: 'Ukuran teks & kecerahan layar',
+            onTap: () => _showAccessibilitySettings(context),
+          ),
+          const SizedBox(height: 24),
+
+          // General Section
+          _buildSectionHeader('Umum'),
+          const SizedBox(height: 12),
+
           // Terms & Conditions
           _buildSettingCard(
             context: context,
@@ -62,6 +82,21 @@ class PengaturanScreen extends StatelessWidget {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: neutralGray,
+          letterSpacing: 0.5,
+        ),
       ),
     );
   }
@@ -119,7 +154,7 @@ class PengaturanScreen extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         subtitle,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 13,
                           color: neutralGray,
                         ),
@@ -127,7 +162,7 @@ class PengaturanScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(
+                const Icon(
                   Icons.arrow_forward_ios_rounded,
                   color: neutralGray,
                   size: 16,
@@ -137,6 +172,15 @@ class PengaturanScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showAccessibilitySettings(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const AccessibilitySettingsSheet(),
     );
   }
 
@@ -153,7 +197,6 @@ class PengaturanScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -170,7 +213,7 @@ class PengaturanScreen extends StatelessWidget {
                         color: primaryBlue.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.description_rounded,
                         color: primaryBlue,
                         size: 24,
@@ -190,8 +233,6 @@ class PengaturanScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // Scrollable Content
               Flexible(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(20),
@@ -200,72 +241,11 @@ class PengaturanScreen extends StatelessWidget {
                     children: [
                       _buildTermsSection(
                         '1. Penerimaan Ketentuan',
-                        'Dengan mengakses dan menggunakan Aplikasi Materi Kurikulum ("Aplikasi"), Anda setuju untuk terikat oleh syarat dan ketentuan ini. Jika Anda tidak setuju dengan ketentuan ini, mohon untuk tidak menggunakan aplikasi.',
+                        'Dengan mengakses dan menggunakan Aplikasi Materi Kurikulum ("Aplikasi"), Anda setuju untuk terikat oleh syarat dan ketentuan ini.',
                       ),
                       _buildTermsSection(
                         '2. Penggunaan Aplikasi',
-                        'Aplikasi ini disediakan untuk tujuan pendidikan dan pembelajaran. Anda tidak diperbolehkan untuk:\n\n'
-                            '• Menggunakan aplikasi untuk tujuan yang melanggar hukum\n'
-                            '• Menyebarkan konten yang mengandung ujaran kebencian, SARA, atau pornografi\n'
-                            '• Mencoba mengakses sistem tanpa izin (hacking)\n'
-                            '• Menyalahgunakan fitur untuk mengganggu pengguna lain\n'
-                            '• Menjual atau mengkomersialkan akses aplikasi',
-                      ),
-                      _buildTermsSection(
-                        '3. Akun Pengguna',
-                        'Anda bertanggung jawab untuk menjaga kerahasiaan informasi akun Anda. Setiap aktivitas yang terjadi di bawah akun Anda adalah tanggung jawab Anda. Segera laporkan kepada kami jika Anda mengetahui adanya penggunaan akun Anda tanpa izin.',
-                      ),
-                      _buildTermsSection(
-                        '4. Konten Pengguna',
-                        'Anda memiliki hak atas konten yang Anda buat (catatan, komentar, dll). Namun, dengan mengunggah konten, Anda memberikan kami lisensi non-eksklusif untuk menggunakan, menyimpan, dan menampilkan konten tersebut dalam aplikasi. Kami berhak menghapus konten yang melanggar ketentuan atau hukum yang berlaku.',
-                      ),
-                      _buildTermsSection(
-                        '5. Hak Kekayaan Intelektual',
-                        'Seluruh materi pembelajaran, desain, logo, dan fitur aplikasi adalah hak milik kami atau pemberi lisensi kami. Anda tidak diperbolehkan menyalin, memodifikasi, atau mendistribusikan konten aplikasi tanpa izin tertulis.',
-                      ),
-                      _buildTermsSection(
-                        '6. Privasi dan Data',
-                        'Kami mengumpulkan dan menggunakan data Anda sesuai dengan Kebijakan Privasi kami. Dengan menggunakan aplikasi, Anda menyetujui pengumpulan dan penggunaan data sebagaimana dijelaskan dalam kebijakan tersebut.',
-                      ),
-                      _buildTermsSection(
-                        '7. Perubahan Layanan',
-                        'Kami berhak untuk:\n\n'
-                            '• Memodifikasi atau menghentikan layanan (sementara atau permanen)\n'
-                            '• Mengubah fitur dan fungsi aplikasi\n'
-                            '• Memperbarui konten pembelajaran\n'
-                            '• Melakukan maintenance tanpa pemberitahuan sebelumnya\n\n'
-                            'Kami akan berusaha memberikan pemberitahuan untuk perubahan signifikan.',
-                      ),
-                      _buildTermsSection(
-                        '8. Batasan Tanggung Jawab',
-                        'Aplikasi disediakan "sebagaimana adanya" tanpa jaminan apapun, baik tersurat maupun tersirat. Kami tidak bertanggung jawab atas:\n\n'
-                            '• Kerugian langsung atau tidak langsung\n'
-                            '• Kehilangan data atau kerusakan perangkat\n'
-                            '• Gangguan layanan atau kesalahan teknis\n'
-                            '• Kesalahan atau ketidakakuratan konten\n'
-                            '• Tindakan pihak ketiga',
-                      ),
-                      _buildTermsSection(
-                        '9. Penghentian Akun',
-                        'Kami berhak untuk menangguhkan atau menghentikan akun Anda jika:\n\n'
-                            '• Anda melanggar ketentuan ini\n'
-                            '• Kami mencurigai aktivitas penipuan atau penyalahgunaan\n'
-                            '• Diperlukan oleh hukum yang berlaku\n\n'
-                            'Anda dapat menghapus akun Anda sendiri melalui pengaturan aplikasi.',
-                      ),
-                      _buildTermsSection(
-                        '10. Hukum yang Berlaku',
-                        'Ketentuan ini diatur oleh dan ditafsirkan sesuai dengan hukum Republik Indonesia. Setiap perselisihan akan diselesaikan melalui mediasi terlebih dahulu sebelum dibawa ke pengadilan.',
-                      ),
-                      _buildTermsSection(
-                        '11. Kontak',
-                        'Jika Anda memiliki pertanyaan tentang ketentuan ini, hubungi kami di:\n\n'
-                            'Email: support@aplikasikurikulum.com\n'
-                            'Website: www.aplikasikurikulum.com',
-                      ),
-                      _buildTermsSection(
-                        '12. Perubahan Ketentuan',
-                        'Kami dapat memperbarui ketentuan ini dari waktu ke waktu. Perubahan akan berlaku setelah dipublikasikan di aplikasi. Penggunaan aplikasi setelah perubahan berarti Anda menyetujui ketentuan yang telah diperbarui.',
+                        'Aplikasi ini disediakan untuk tujuan pendidikan dan pembelajaran. Anda tidak diperbolehkan untuk menggunakan aplikasi untuk tujuan yang melanggar hukum.',
                       ),
                       const SizedBox(height: 8),
                       Container(
@@ -277,7 +257,7 @@ class PengaturanScreen extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.calendar_today_rounded,
                               size: 16,
                               color: primaryBlue,
@@ -300,8 +280,6 @@ class PengaturanScreen extends StatelessWidget {
                   ),
                 ),
               ),
-
-              // Footer Button
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -357,7 +335,6 @@ class PengaturanScreen extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Header
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -374,7 +351,7 @@ class PengaturanScreen extends StatelessWidget {
                             color: accentAmber.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.star_rounded,
                             color: accentAmber,
                             size: 24,
@@ -394,8 +371,6 @@ class PengaturanScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
-                  // Content
                   Flexible(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.all(20),
@@ -418,7 +393,7 @@ class PengaturanScreen extends StatelessWidget {
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 8),
-                          Text(
+                          const Text(
                             'Berikan rating untuk membantu kami meningkatkan aplikasi',
                             style: TextStyle(
                               fontSize: 14,
@@ -462,7 +437,7 @@ class PengaturanScreen extends StatelessWidget {
                               ),
                               child: Text(
                                 _getRatingText(selectedRating),
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: accentAmber,
                                   fontWeight: FontWeight.w700,
                                   fontSize: 14,
@@ -473,8 +448,6 @@ class PengaturanScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-
-                  // Footer Buttons
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -556,7 +529,7 @@ class PengaturanScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             content,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14,
               color: neutralGray,
               height: 1.6,
@@ -583,5 +556,307 @@ class PengaturanScreen extends StatelessWidget {
       default:
         return '';
     }
+  }
+}
+
+// Accessibility Settings Bottom Sheet
+class AccessibilitySettingsSheet extends StatefulWidget {
+  const AccessibilitySettingsSheet({super.key});
+
+  @override
+  State<AccessibilitySettingsSheet> createState() =>
+      _AccessibilitySettingsSheetState();
+}
+
+class _AccessibilitySettingsSheetState
+    extends State<AccessibilitySettingsSheet> {
+  @override
+  Widget build(BuildContext context) {
+    final accessibilityProvider = Provider.of<AccessibilityProvider>(context);
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: secondaryTeal.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.accessibility_new_rounded,
+                      color: secondaryTeal,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      'Pengaturan Aksesibilitas',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: primaryDarkBlue,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded),
+                    color: neutralGray,
+                  ),
+                ],
+              ),
+            ),
+
+            // Content
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Text Size Section
+                    _buildSectionTitle('Ukuran Teks'),
+                    const SizedBox(height: 12),
+                    _buildTextSizeOptions(accessibilityProvider),
+                    const SizedBox(height: 8),
+                    _buildTextPreview(accessibilityProvider),
+                    const SizedBox(height: 24),
+
+                    // Brightness Section
+                    _buildSectionTitle('Kecerahan Aplikasi'),
+                    const SizedBox(height: 12),
+                    _buildBrightnessSlider(accessibilityProvider),
+                    const SizedBox(height: 24),
+
+                    // Haptic Feedback Section
+                    _buildSectionTitle('Getaran (Haptic Feedback)'),
+                    const SizedBox(height: 12),
+                    _buildHapticToggle(accessibilityProvider),
+                    const SizedBox(height: 24),
+
+                    // Reset Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          await accessibilityProvider.resetToDefaults();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content:
+                                    Text('Pengaturan dikembalikan ke default'),
+                                backgroundColor: successGreen,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.restore_rounded),
+                        label: const Text('Reset ke Default'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          foregroundColor: primaryBlue,
+                          side: BorderSide(color: primaryBlue.withOpacity(0.3)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w700,
+        color: primaryDarkBlue,
+      ),
+    );
+  }
+
+  Widget _buildTextSizeOptions(AccessibilityProvider provider) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: AccessibilityProvider.textScalePresets.entries.map((entry) {
+        final isSelected = provider.textScaleFactor == entry.value;
+        return ChoiceChip(
+          label: Text(entry.key),
+          selected: isSelected,
+          onSelected: (selected) async {
+            if (selected) {
+              await provider.setTextScale(entry.value);
+              if (provider.hapticEnabled) {
+                HapticFeedback.selectionClick();
+              }
+            }
+          },
+          selectedColor: secondaryTeal,
+          checkmarkColor: Colors.white,
+          labelStyle: TextStyle(
+            color: isSelected ? Colors.white : neutralGray,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildTextPreview(AccessibilityProvider provider) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        'Contoh teks dengan ukuran yang dipilih',
+        style: TextStyle(
+          fontSize: 16 * provider.textScaleFactor,
+          color: primaryDarkBlue,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildBrightnessSlider(AccessibilityProvider provider) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Icon(Icons.brightness_low_rounded, color: neutralGray),
+              Expanded(
+                child: Slider(
+                  value: provider.appBrightness,
+                  onChanged: (value) async {
+                    await provider.setBrightness(value);
+                  },
+                  onChangeEnd: (value) {
+                    if (provider.hapticEnabled) {
+                      HapticFeedback.mediumImpact();
+                    }
+                  },
+                  activeColor: secondaryTeal,
+                  inactiveColor: Colors.grey.shade300,
+                ),
+              ),
+              const Icon(Icons.brightness_high_rounded, color: neutralGray),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _getBrightnessLabel(provider.appBrightness),
+            style: TextStyle(
+              fontSize: 13,
+              color: neutralGray,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHapticToggle(AccessibilityProvider provider) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.vibration_rounded,
+            color: provider.hapticEnabled ? secondaryTeal : neutralGray,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Aktifkan Getaran',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: primaryDarkBlue,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Getaran saat interaksi dengan aplikasi',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: neutralGray,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: provider.hapticEnabled,
+            onChanged: (value) async {
+              await provider.setHapticEnabled(value);
+              if (value) {
+                HapticFeedback.heavyImpact();
+              }
+            },
+            activeColor: secondaryTeal,
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getBrightnessLabel(double brightness) {
+    if (brightness < 0.3) return 'Sangat Gelap';
+    if (brightness < 0.45) return 'Gelap';
+    if (brightness < 0.55) return 'Normal';
+    if (brightness < 0.7) return 'Terang';
+    return 'Sangat Terang';
   }
 }

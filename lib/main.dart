@@ -16,6 +16,7 @@ import 'providers/profile_provider.dart';
 import 'providers/friends_provider.dart';
 import 'providers/progress_provider.dart';
 import 'providers/auth_provider.dart' as app_auth;
+import 'providers/accessibility_provider.dart';
 
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
@@ -53,22 +54,49 @@ class AppKurikulum extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => FriendsProvider()),
         ChangeNotifierProvider(create: (_) => ProgressProvider()),
         ChangeNotifierProvider(create: (_) => app_auth.AuthProvider()),
+        ChangeNotifierProvider(create: (_) => AccessibilityProvider()),
       ],
-      child: MaterialApp(
-        navigatorKey: navigatorKey,
-        debugShowCheckedModeBanner: false,
-        title: 'Aplikasi Materi Kurikulum',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-          useMaterial3: true,
-        ),
-        home: const RootPage(),
+      child: Consumer<AccessibilityProvider>(
+        builder: (context, accessibilityProvider, child) {
+          return MaterialApp(
+            navigatorKey: navigatorKey,
+            debugShowCheckedModeBanner: false,
+            title: 'Aplikasi Materi Kurikulum',
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+              useMaterial3: true,
+            ),
+            // ✅ Apply global text scale factor
+            builder: (context, child) {
+              return MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaleFactor: accessibilityProvider.textScaleFactor,
+                ),
+                child: Stack(
+                  children: [
+                    child!,
+                    // ✅ Brightness overlay
+                    if (accessibilityProvider.appBrightness != 0.5)
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: Container(
+                            color: accessibilityProvider.getBrightnessOverlay(),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+            home: const RootPage(),
+          );
+        },
       ),
     );
   }
 }
 
-/// ✅ ROOTPAGE = TEMPAT SATU-SATUNYA LOAD PROFILE
+/// ✅ ROOTPAGE = TEMPAT SATU-SATUNYA LOAD PROFILE + ACCESSIBILITY
 class RootPage extends StatefulWidget {
   const RootPage({super.key});
 
@@ -83,8 +111,12 @@ class _RootPageState extends State<RootPage> {
 
     NotificationService.init();
 
-    /// ✅ LOAD PROFILE SEKALI SAAT APP DIBUKA
+    /// ✅ LOAD PROFILE + ACCESSIBILITY SETTINGS SEKALI SAAT APP DIBUKA
     Future.microtask(() async {
+      // Load accessibility settings first
+      await context.read<AccessibilityProvider>().loadSettings();
+
+      // Load user profile if logged in
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         await context.read<ProfileProvider>().loadUser();
