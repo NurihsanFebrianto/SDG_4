@@ -10,30 +10,38 @@ class ReadingTimeService {
   String? _currentBabId;
   String? _currentModulId;
 
-  // 🆕 Threshold untuk feedback (3 menit = 180 detik)
   static const int feedbackThreshold = 10;
 
-  // Start tracking
+  // ✅ Get current userId
+  String _getCurrentUserId() {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('User not logged in');
+    return user.uid;
+  }
+
+  // ✅ Generate user-specific key
+  String _getUserKey(String key) {
+    final userId = _getCurrentUserId();
+    return '${key}_$userId';
+  }
+
   void startReading(String modulId, String babId) {
     _startTime = DateTime.now();
     _currentModulId = modulId;
     _currentBabId = babId;
   }
 
-  // Stop tracking and save
   Future<void> stopReading() async {
     if (_startTime == null || _currentBabId == null) return;
 
     final duration = DateTime.now().difference(_startTime!);
     final seconds = duration.inSeconds;
 
-    // Minimum 1 second to count
     if (seconds < 1) {
       _reset();
       return;
     }
 
-    // Send to Firebase Analytics
     try {
       await _analytics.logEvent(
         name: 'reading_session',
@@ -41,7 +49,7 @@ class ReadingTimeService {
           'modul_id': _currentModulId ?? '',
           'bab_id': _currentBabId ?? '',
           'duration_seconds': seconds,
-          'user_id': _auth.currentUser?.uid ?? 'anonymous',
+          'user_id': _getCurrentUserId(),
           'timestamp': DateTime.now().toIso8601String(),
         },
       );
@@ -49,9 +57,7 @@ class ReadingTimeService {
       // Silent fail for analytics
     }
 
-    // Save progress locally
     await _saveProgressLocally(seconds);
-
     _reset();
   }
 
@@ -64,7 +70,8 @@ class ReadingTimeService {
   Future<void> _saveProgressLocally(int seconds) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final key = 'reading_time_$_currentBabId';
+      // ✅ User-specific key
+      final key = _getUserKey('reading_time_$_currentBabId');
       final current = prefs.getInt(key) ?? 0;
       await prefs.setInt(key, current + seconds);
     } catch (e) {
@@ -72,47 +79,45 @@ class ReadingTimeService {
     }
   }
 
-  // Get reading time for a bab (in seconds)
+  // ✅ Get reading time for a bab (user-specific)
   Future<int> getReadingTime(String babId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      return prefs.getInt('reading_time_$babId') ?? 0;
+      final key = _getUserKey('reading_time_$babId');
+      return prefs.getInt(key) ?? 0;
     } catch (e) {
       return 0;
     }
   }
 
-  // 🆕 Get current session reading time (realtime)
   int getCurrentSessionTime() {
     if (_startTime == null) return 0;
     return DateTime.now().difference(_startTime!).inSeconds;
   }
 
-  // 🆕 Check if should show feedback
+  // ✅ Check if should show feedback (user-specific)
   Future<bool> shouldShowFeedback(String babId) async {
-    // Check if already shown feedback
     final prefs = await SharedPreferences.getInstance();
-    final shownKey = 'feedback_shown_$babId';
+    final shownKey = _getUserKey('feedback_shown_$babId');
     final hasShown = prefs.getBool(shownKey) ?? false;
 
     if (hasShown) return false;
 
-    // Check if reading time >= threshold
     final currentTime = getCurrentSessionTime();
     return currentTime >= feedbackThreshold;
   }
 
-  // 🆕 Mark feedback as shown for this bab
+  // ✅ Mark feedback as shown (user-specific)
   Future<void> markFeedbackShown(String babId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('feedback_shown_$babId', true);
+      final key = _getUserKey('feedback_shown_$babId');
+      await prefs.setBool(key, true);
     } catch (e) {
       // Silent fail
     }
   }
 
-  // Calculate progress percentage (5 minutes = 100%)
   Future<double> getProgressPercent(String babId,
       {int targetSeconds = 300}) async {
     final seconds = await getReadingTime(babId);
@@ -120,7 +125,6 @@ class ReadingTimeService {
     return percent > 100 ? 100 : percent;
   }
 
-  // Format seconds to readable time
   String formatTime(int seconds) {
     if (seconds < 60) return '${seconds}s';
     final minutes = seconds ~/ 60;
@@ -133,11 +137,13 @@ class ReadingTimeService {
     return mins > 0 ? '${hours}h ${mins}m' : '${hours}h';
   }
 
-  // Clear all reading progress (for testing/reset)
+  // ✅ Clear progress for current user only
   Future<void> clearAllProgress() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final keys = prefs.getKeys().where((k) => k.startsWith('reading_time_'));
+      final userId = _getCurrentUserId();
+      final keys = prefs.getKeys().where(
+          (k) => k.startsWith('reading_time_') && k.endsWith('_$userId'));
       for (final key in keys) {
         await prefs.remove(key);
       }
@@ -146,11 +152,13 @@ class ReadingTimeService {
     }
   }
 
-  // Get total reading time across all babs
+  // ✅ Get total reading time for current user
   Future<int> getTotalReadingTime() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final keys = prefs.getKeys().where((k) => k.startsWith('reading_time_'));
+      final userId = _getCurrentUserId();
+      final keys = prefs.getKeys().where(
+          (k) => k.startsWith('reading_time_') && k.endsWith('_$userId'));
       int total = 0;
       for (final key in keys) {
         total += prefs.getInt(key) ?? 0;
@@ -158,6 +166,22 @@ class ReadingTimeService {
       return total;
     } catch (e) {
       return 0;
+    }
+  }
+
+  // ✅ Clear all data for current user on logout
+  Future<void> clearUserData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = _getCurrentUserId();
+
+      // Remove all keys containing userId
+      final keys = prefs.getKeys().where((k) => k.endsWith('_$userId'));
+      for (final key in keys) {
+        await prefs.remove(key);
+      }
+    } catch (e) {
+      // Silent fail
     }
   }
 }
