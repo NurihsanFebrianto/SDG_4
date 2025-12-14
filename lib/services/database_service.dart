@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/catatan.dart';
 import '../models/quiz_result.dart';
 
@@ -21,39 +22,55 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 2, // UPGRADE VERSION untuk tambah kolom baru
+      version: 3, // ✅ UPGRADE VERSION untuk add userId column
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
   }
 
   Future _createDB(Database db, int version) async {
-    // Tabel Catatan
+    // ✅ Tabel Catatan dengan userId
     await db.execute('''
       CREATE TABLE catatan (
         id TEXT PRIMARY KEY,
         isi TEXT NOT NULL,
         modulId TEXT,
         babId TEXT,
-        createdAt TEXT NOT NULL
+        createdAt TEXT NOT NULL,
+        userId TEXT NOT NULL
       )
     ''');
 
-    // Tabel Quiz Results - UPDATED dengan kolom lengkap
+    // ✅ Tabel Quiz Results dengan userId
     await db.execute('''
       CREATE TABLE quiz_results (
-        babId TEXT PRIMARY KEY,
+        id TEXT PRIMARY KEY,
+        babId TEXT NOT NULL,
         score INTEGER NOT NULL,
         totalQuestions INTEGER NOT NULL,
-        timestamp TEXT NOT NULL
+        timestamp TEXT NOT NULL,
+        userId TEXT NOT NULL
+      )
+    ''');
+
+    // ✅ Tabel Friends dengan userId
+    await db.execute('''
+      CREATE TABLE friends (
+        id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        picture TEXT NOT NULL,
+        location TEXT NOT NULL,
+        registeredDate TEXT NOT NULL,
+        userId TEXT NOT NULL,
+        PRIMARY KEY (id, userId)
       )
     ''');
   }
 
-  // Upgrade database jika ada perubahan struktur
   Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      // Tambah kolom baru jika upgrade dari version 1
       await db.execute('''
         ALTER TABLE quiz_results ADD COLUMN totalQuestions INTEGER DEFAULT 5
       ''');
@@ -61,87 +78,219 @@ class DatabaseService {
         ALTER TABLE quiz_results ADD COLUMN timestamp TEXT
       ''');
     }
+
+    if (oldVersion < 3) {
+      // ✅ Add userId column to existing tables
+      try {
+        await db.execute('ALTER TABLE catatan ADD COLUMN userId TEXT');
+        await db.execute('ALTER TABLE quiz_results ADD COLUMN userId TEXT');
+      } catch (e) {
+        // Column might already exist
+      }
+
+      // ✅ Create friends table
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS friends (
+          id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          email TEXT NOT NULL,
+          phone TEXT NOT NULL,
+          picture TEXT NOT NULL,
+          location TEXT NOT NULL,
+          registeredDate TEXT NOT NULL,
+          userId TEXT NOT NULL,
+          PRIMARY KEY (id, userId)
+        )
+      ''');
+
+      // ✅ Add id column to quiz_results if not exists
+      try {
+        await db.execute('ALTER TABLE quiz_results ADD COLUMN id TEXT');
+      } catch (e) {
+        // Column might already exist
+      }
+    }
+  }
+
+  // ✅ Get current userId
+  String _getCurrentUserId() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw Exception('User not logged in');
+    return user.uid;
   }
 
   // ============================================
-  // CATATAN OPERATIONS
+  // CATATAN OPERATIONS (USER ISOLATED)
   // ============================================
 
   Future<void> insertCatatan(Catatan catatan) async {
     final db = await instance.database;
+    final userId = _getCurrentUserId();
+
+    final map = catatan.toMap();
+    map['userId'] = userId; // ✅ Add userId
+
     await db.insert(
       'catatan',
-      catatan.toMap(),
+      map,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
   Future<List<Catatan>> getAllCatatan() async {
     final db = await instance.database;
-    final maps = await db.query('catatan', orderBy: 'createdAt DESC');
+    final userId = _getCurrentUserId();
+
+    // ✅ Filter by userId
+    final maps = await db.query(
+      'catatan',
+      where: 'userId = ?',
+      whereArgs: [userId],
+      orderBy: 'createdAt DESC',
+    );
+
     return maps.map((map) => Catatan.fromMap(map)).toList();
   }
 
   Future<void> updateCatatan(Catatan catatan) async {
     final db = await instance.database;
+    final userId = _getCurrentUserId();
+
+    final map = catatan.toMap();
+    map['userId'] = userId;
+
     await db.update(
       'catatan',
-      catatan.toMap(),
-      where: 'id = ?',
-      whereArgs: [catatan.id],
+      map,
+      where: 'id = ? AND userId = ?',
+      whereArgs: [catatan.id, userId],
     );
   }
 
   Future<void> deleteCatatan(String id) async {
     final db = await instance.database;
+    final userId = _getCurrentUserId();
+
     await db.delete(
       'catatan',
-      where: 'id = ?',
-      whereArgs: [id],
+      where: 'id = ? AND userId = ?',
+      whereArgs: [id, userId],
     );
   }
 
   // ============================================
-  // QUIZ RESULTS OPERATIONS - FIXED
+  // QUIZ RESULTS OPERATIONS (USER ISOLATED)
   // ============================================
 
   Future<void> saveQuizResult(QuizResult result) async {
     final db = await instance.database;
+    final userId = _getCurrentUserId();
+
+    final map = result.toMap();
+    map['userId'] = userId; // ✅ Add userId
+    map['id'] = '${result.babId}_$userId'; // Unique ID per user per bab
+
     await db.insert(
       'quiz_results',
-      result.toMap(), // GANTI dari toJson() ke toMap()
+      map,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
   Future<Map<String, QuizResult>> getQuizResults() async {
     final db = await instance.database;
-    final maps = await db.query('quiz_results');
+    final userId = _getCurrentUserId();
+
+    // ✅ Filter by userId
+    final maps = await db.query(
+      'quiz_results',
+      where: 'userId = ?',
+      whereArgs: [userId],
+    );
 
     final results = <String, QuizResult>{};
     for (final map in maps) {
-      final result =
-          QuizResult.fromMap(map); // GANTI dari fromJson() ke fromMap()
+      final result = QuizResult.fromMap(map);
       results[result.babId] = result;
     }
 
     return results;
   }
 
-  // Hapus hasil quiz untuk bab tertentu
   Future<void> deleteQuizResult(String babId) async {
     final db = await instance.database;
+    final userId = _getCurrentUserId();
+
     await db.delete(
       'quiz_results',
-      where: 'babId = ?',
-      whereArgs: [babId],
+      where: 'babId = ? AND userId = ?',
+      whereArgs: [babId, userId],
     );
   }
 
-  // Hapus semua hasil quiz
   Future<void> deleteAllQuizResults() async {
     final db = await instance.database;
-    await db.delete('quiz_results');
+    final userId = _getCurrentUserId();
+
+    await db.delete(
+      'quiz_results',
+      where: 'userId = ?',
+      whereArgs: [userId],
+    );
+  }
+
+  // ============================================
+  // FRIENDS OPERATIONS (USER ISOLATED)
+  // ============================================
+
+  Future<void> insertFriend(Map<String, dynamic> friendData) async {
+    final db = await instance.database;
+    final userId = _getCurrentUserId();
+
+    friendData['userId'] = userId; // ✅ Add userId
+
+    await db.insert(
+      'friends',
+      friendData,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getAllFriends() async {
+    final db = await instance.database;
+    final userId = _getCurrentUserId();
+
+    // ✅ Filter by userId
+    return await db.query(
+      'friends',
+      where: 'userId = ?',
+      whereArgs: [userId],
+    );
+  }
+
+  Future<void> deleteFriend(String friendId) async {
+    final db = await instance.database;
+    final userId = _getCurrentUserId();
+
+    await db.delete(
+      'friends',
+      where: 'id = ? AND userId = ?',
+      whereArgs: [friendId, userId],
+    );
+  }
+
+  // ============================================
+  // CLEAR USER DATA ON LOGOUT
+  // ============================================
+
+  Future<void> clearUserData() async {
+    final db = await instance.database;
+    final userId = _getCurrentUserId();
+
+    // ✅ Delete all data for current user
+    await db.delete('catatan', where: 'userId = ?', whereArgs: [userId]);
+    await db.delete('quiz_results', where: 'userId = ?', whereArgs: [userId]);
+    await db.delete('friends', where: 'userId = ?', whereArgs: [userId]);
   }
 
   Future close() async {

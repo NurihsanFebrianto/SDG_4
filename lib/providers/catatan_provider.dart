@@ -11,6 +11,7 @@ class CatatanProvider with ChangeNotifier {
     _loadCatatanFromDB();
   }
 
+  // ✅ Load catatan from DB (already user-isolated via DatabaseService)
   Future<void> _loadCatatanFromDB() async {
     try {
       _items = await DatabaseService.instance.getAllCatatan();
@@ -33,7 +34,7 @@ class CatatanProvider with ChangeNotifier {
       );
 
       await DatabaseService.instance.insertCatatan(newCatatan);
-      _items.insert(0, newCatatan); // Tambah di awal list
+      _items.insert(0, newCatatan);
       notifyListeners();
 
       print('Catatan berhasil ditambah: ${newCatatan.isi}');
@@ -82,8 +83,14 @@ class CatatanProvider with ChangeNotifier {
     }).toList();
   }
 
-  // Method untuk refresh data
+  // ✅ Refresh data (reload from DB)
   Future<void> refreshCatatan() async {
     await _loadCatatanFromDB();
+  }
+
+  // ✅ Clear catatan (on logout/switch account)
+  void clearCatatan() {
+    _items.clear();
+    notifyListeners();
   }
 }

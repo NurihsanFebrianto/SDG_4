@@ -66,7 +66,7 @@ class AppKurikulum extends StatelessWidget {
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
               useMaterial3: true,
             ),
-            // ✅ Apply global text scale factor
+            // ✅ Apply global text scale factor + brightness overlay
             builder: (context, child) {
               return MediaQuery(
                 data: MediaQuery.of(context).copyWith(
@@ -96,7 +96,7 @@ class AppKurikulum extends StatelessWidget {
   }
 }
 
-/// ✅ ROOTPAGE = TEMPAT SATU-SATUNYA LOAD PROFILE + ACCESSIBILITY
+/// ✅ ROOTPAGE - Handle auth state + user isolation
 class RootPage extends StatefulWidget {
   const RootPage({super.key});
 
@@ -111,7 +111,7 @@ class _RootPageState extends State<RootPage> {
 
     NotificationService.init();
 
-    /// ✅ LOAD PROFILE + ACCESSIBILITY SETTINGS SEKALI SAAT APP DIBUKA
+    /// ✅ LOAD ACCESSIBILITY + PROFILE SETTINGS SAAT APP DIBUKA
     Future.microtask(() async {
       // Load accessibility settings first
       await context.read<AccessibilityProvider>().loadSettings();
@@ -120,6 +120,9 @@ class _RootPageState extends State<RootPage> {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         await context.read<ProfileProvider>().loadUser();
+        // ✅ Load user-specific data
+        await context.read<CatatanProvider>().refreshCatatan();
+        await context.read<FriendsProvider>().refreshFriends();
       }
     });
   }
@@ -135,11 +138,22 @@ class _RootPageState extends State<RootPage> {
           );
         }
 
-        if (snapshot.hasData) {
-          return const HomeScreen();
+        // ✅ User logged out - clear all providers
+        if (!snapshot.hasData) {
+          Future.microtask(() {
+            context.read<CatatanProvider>().clearCatatan();
+            context.read<FriendsProvider>().clearFriends();
+          });
+          return const LoginScreen();
         }
 
-        return const LoginScreen();
+        // ✅ User logged in - refresh their data
+        Future.microtask(() {
+          context.read<CatatanProvider>().refreshCatatan();
+          context.read<FriendsProvider>().refreshFriends();
+        });
+
+        return const HomeScreen();
       },
     );
   }
