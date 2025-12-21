@@ -9,6 +9,7 @@ import 'package:aplikasi_materi_kurikulum/screens/friends_list_screen.dart';
 import 'package:aplikasi_materi_kurikulum/screens/modul_list_screen.dart';
 import 'package:aplikasi_materi_kurikulum/screens/pengumuman_list_screen.dart';
 import 'package:aplikasi_materi_kurikulum/services/pengumuman_service.dart';
+import 'package:aplikasi_materi_kurikulum/widgets/banner_ad.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:provider/provider.dart';
@@ -81,29 +82,36 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              tooltip: 'Profil Akademik',
-              icon: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withOpacity(0.3)),
-                ),
-                child: const Icon(Icons.school_outlined, size: 22),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                );
-              },
-            ),
+          IconButton(
+            icon: const Icon(Icons.school_outlined),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              );
+            },
           ),
         ],
       ),
-      body: _pages[_currentIndex],
+
+      // INI BAGIAN PENTING
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 80),
+            child: _pages[_currentIndex],
+          ),
+
+          // BANNER ADMOB ()
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: BannerAdWidget(),
+          ),
+        ],
+      ),
+
       bottomNavigationBar: _buildAcademicBottomNavigationBar(),
     );
   }
@@ -130,32 +138,18 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: Colors.white,
           selectedItemColor: primaryBlue,
           unselectedItemColor: neutralGray,
-          selectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-          ),
-          unselectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 12,
-          ),
           type: BottomNavigationBarType.fixed,
-          elevation: 8,
           items: const [
             BottomNavigationBarItem(
-              icon: _AcademicNavIcon(icon: Icons.notes_outlined),
-              activeIcon: _AcademicNavIcon(icon: Icons.notes, isActive: true),
+              icon: Icon(Icons.notes_outlined),
               label: 'Catatan',
             ),
             BottomNavigationBarItem(
-              icon: _AcademicNavIcon(icon: Icons.dashboard_outlined),
-              activeIcon:
-                  _AcademicNavIcon(icon: Icons.dashboard, isActive: true),
+              icon: Icon(Icons.dashboard_outlined),
               label: 'Dashboard',
             ),
             BottomNavigationBarItem(
-              icon: _AcademicNavIcon(icon: Icons.settings_outlined),
-              activeIcon:
-                  _AcademicNavIcon(icon: Icons.settings, isActive: true),
+              icon: Icon(Icons.settings_outlined),
               label: 'Pengaturan',
             ),
           ],
@@ -221,8 +215,8 @@ class _HomeContentState extends State<_HomeContent> {
           const SizedBox(height: 32),
           _buildQuickActions(context),
           const SizedBox(height: 32),
-          _buildProgressSection(context),
-          const SizedBox(height: 32),
+          // _buildProgressSection(context),
+          // const SizedBox(height: 32),
           _buildFriendsSection(context, friendsProvider),
           const SizedBox(height: 24),
         ],
@@ -664,187 +658,187 @@ class _HomeContentState extends State<_HomeContent> {
     );
   }
 
-  Widget _buildProgressSection(BuildContext context) {
-    return Consumer<ProgressProvider>(
-      builder: (context, progressProvider, _) {
-        if (progressProvider.isLoading) {
-          return _buildProgressSkeleton();
-        }
+  // Widget _buildProgressSection(BuildContext context) {
+  //   return Consumer<ProgressProvider>(
+  //     builder: (context, progressProvider, _) {
+  //       if (progressProvider.isLoading) {
+  //         return _buildProgressSkeleton();
+  //       }
 
-        if (progressProvider.error != null) {
-          return _buildErrorState(progressProvider.error!);
-        }
+  //       if (progressProvider.error != null) {
+  //         return _buildErrorState(progressProvider.error!);
+  //       }
 
-        final progress = progressProvider.progress;
-        if (progress == null) {
-          return _buildEmptyProgressState();
-        }
+  //       final progress = progressProvider.progress;
+  //       if (progress == null) {
+  //         return _buildEmptyProgressState();
+  //       }
 
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
-              ),
-            ],
-            border: Border.all(color: Colors.grey.shade100),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: primaryBlue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.timeline_rounded,
-                            color: primaryBlue, size: 20),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Progress Akademik',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: primaryDarkBlue,
-                              fontSize: 18,
-                            ),
-                      ),
-                    ],
-                  ),
-                  _buildViewAllButton(
-                    onPressed: () async {
-                      final provider = context.read<ProgressProvider>();
-                      await provider.getAllProgress("1");
+  //       return Container(
+  //         width: double.infinity,
+  //         padding: const EdgeInsets.all(20),
+  //         decoration: BoxDecoration(
+  //           color: Colors.white,
+  //           borderRadius: BorderRadius.circular(20),
+  //           boxShadow: [
+  //             BoxShadow(
+  //               color: Colors.grey.withOpacity(0.1),
+  //               blurRadius: 15,
+  //               offset: const Offset(0, 5),
+  //             ),
+  //           ],
+  //           border: Border.all(color: Colors.grey.shade100),
+  //         ),
+  //         child: Column(
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //               children: [
+  //                 Row(
+  //                   children: [
+  //                     Container(
+  //                       padding: const EdgeInsets.all(6),
+  //                       decoration: BoxDecoration(
+  //                         color: primaryBlue.withOpacity(0.1),
+  //                         borderRadius: BorderRadius.circular(8),
+  //                       ),
+  //                       child: const Icon(Icons.timeline_rounded,
+  //                           color: primaryBlue, size: 20),
+  //                     ),
+  //                     const SizedBox(width: 8),
+  //                     Text(
+  //                       'Progress Akademik',
+  //                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
+  //                             fontWeight: FontWeight.w700,
+  //                             color: primaryDarkBlue,
+  //                             fontSize: 18,
+  //                           ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //                 _buildViewAllButton(
+  //                   onPressed: () async {
+  //                     final provider = context.read<ProgressProvider>();
+  //                     await provider.getAllProgress("1");
 
-                      if (provider.error != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content:
-                                Text('Gagal memuat data: ${provider.error}'),
-                            backgroundColor: errorRed,
-                          ),
-                        );
-                        return;
-                      }
+  //                     if (provider.error != null) {
+  //                       ScaffoldMessenger.of(context).showSnackBar(
+  //                         SnackBar(
+  //                           content:
+  //                               Text('Gagal memuat data: ${provider.error}'),
+  //                           backgroundColor: errorRed,
+  //                         ),
+  //                       );
+  //                       return;
+  //                     }
 
-                      if (context.mounted) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ProgressListScreen(
-                                progressList: provider.allProgress),
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildAcademicProgressItem(
-                    'Hari Ini',
-                    '${progress.dailyCompleted}',
-                    'tugas',
-                    secondaryCyan,
-                  ),
-                  _buildAcademicProgressItem(
-                    'Minggu Ini',
-                    '${progress.weeklyCompleted}',
-                    'tugas',
-                    secondaryTeal,
-                  ),
-                  _buildAcademicProgressItem(
-                    'Streak',
-                    '${progress.streak}',
-                    'hari',
-                    accentAmber,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Progress Modul',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: primaryDarkBlue,
-                          fontSize: 14,
-                        ),
-                      ),
-                      Text(
-                        '${progress.lessonProgress}%',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: primaryBlue,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Stack(
-                      children: [
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            return AnimatedContainer(
-                              duration: const Duration(milliseconds: 600),
-                              width: constraints.maxWidth *
-                                  (progress.lessonProgress / 100),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [secondaryCyan, secondaryBlue],
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    '${progress.currentModule} • ${progress.currentLesson}',
-                    style: TextStyle(
-                      color: neutralGray,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  //                     if (context.mounted) {
+  //                       Navigator.push(
+  //                         context,
+  //                         MaterialPageRoute(
+  //                           builder: (_) => ProgressListScreen(
+  //                               progressList: provider.allProgress),
+  //                         ),
+  //                       );
+  //                     }
+  //                   },
+  //                 ),
+  //               ],
+  //             ),
+  //             const SizedBox(height: 20),
+  //             Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //               children: [
+  //                 _buildAcademicProgressItem(
+  //                   'Hari Ini',
+  //                   '${progress.dailyCompleted}',
+  //                   'tugas',
+  //                   secondaryCyan,
+  //                 ),
+  //                 _buildAcademicProgressItem(
+  //                   'Minggu Ini',
+  //                   '${progress.weeklyCompleted}',
+  //                   'tugas',
+  //                   secondaryTeal,
+  //                 ),
+  //                 _buildAcademicProgressItem(
+  //                   'Streak',
+  //                   '${progress.streak}',
+  //                   'hari',
+  //                   accentAmber,
+  //                 ),
+  //               ],
+  //             ),
+  //             const SizedBox(height: 20),
+  //             Column(
+  //               crossAxisAlignment: CrossAxisAlignment.start,
+  //               children: [
+  //                 Row(
+  //                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                   children: [
+  //                     Text(
+  //                       'Progress Modul',
+  //                       style: TextStyle(
+  //                         fontWeight: FontWeight.w600,
+  //                         color: primaryDarkBlue,
+  //                         fontSize: 14,
+  //                       ),
+  //                     ),
+  //                     Text(
+  //                       '${progress.lessonProgress}%',
+  //                       style: const TextStyle(
+  //                         fontWeight: FontWeight.w700,
+  //                         color: primaryBlue,
+  //                         fontSize: 14,
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //                 const SizedBox(height: 8),
+  //                 Container(
+  //                   height: 8,
+  //                   decoration: BoxDecoration(
+  //                     color: Colors.grey.shade200,
+  //                     borderRadius: BorderRadius.circular(4),
+  //                   ),
+  //                   child: Stack(
+  //                     children: [
+  //                       LayoutBuilder(
+  //                         builder: (context, constraints) {
+  //                           return AnimatedContainer(
+  //                             duration: const Duration(milliseconds: 600),
+  //                             width: constraints.maxWidth *
+  //                                 (progress.lessonProgress / 100),
+  //                             decoration: BoxDecoration(
+  //                               gradient: const LinearGradient(
+  //                                 colors: [secondaryCyan, secondaryBlue],
+  //                               ),
+  //                               borderRadius: BorderRadius.circular(4),
+  //                             ),
+  //                           );
+  //                         },
+  //                       ),
+  //                     ],
+  //                   ),
+  //                 ),
+  //                 const SizedBox(height: 12),
+  //                 Text(
+  //                   '${progress.currentModule} • ${progress.currentLesson}',
+  //                   style: TextStyle(
+  //                     color: neutralGray,
+  //                     fontSize: 13,
+  //                     fontWeight: FontWeight.w500,
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ],
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
   Widget _buildAcademicProgressItem(
       String label, String value, String unit, Color color) {
