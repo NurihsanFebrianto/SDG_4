@@ -265,4 +265,12 @@ class QuizProvider with ChangeNotifier {
     debugPrint('🔄 RESET ALL QUIZ');
     notifyListeners();
   }
+
+  Future<void> refreshQuiz() async {
+    await loadResults();
+  }
+
+  void clearQuiz() {
+    resetAll();
+  }
 }

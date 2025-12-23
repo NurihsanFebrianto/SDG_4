@@ -1,3 +1,4 @@
+// friends_list_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -31,6 +32,7 @@ class _FriendsListScreenState extends State<FriendsListScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Load friends dari Firestore saat screen dibuka
       context.read<FriendsProvider>().loadSuggestedFriends();
     });
   }
@@ -69,7 +71,7 @@ class _FriendsListScreenState extends State<FriendsListScreen> {
             onRefresh: () => friendsProvider.loadSuggestedFriends(),
             child: CustomScrollView(
               slivers: [
-                // Added Friends Section
+                // Added Friends Section (dari Firestore)
                 if (friendsProvider.addedFriends.isNotEmpty)
                   _buildAcademicFriendsSection(
                     'Teman Belajar Anda',
@@ -269,7 +271,6 @@ class _FriendsListScreenState extends State<FriendsListScreen> {
           ),
           const SizedBox(width: 12),
           Expanded(
-            // FIX: Added Expanded to prevent overflow
             child: Text(
               title,
               style: const TextStyle(
@@ -314,11 +315,64 @@ class _FriendsListScreenState extends State<FriendsListScreen> {
   }
 
   void _handleAddRemoveFriend(
-      FriendsProvider provider, Friend friend, bool isAdded) {
+      FriendsProvider provider, Friend friend, bool isAdded) async {
     if (isAdded) {
-      provider.removeFriend(friend.id);
+      // Hapus dari Firestore
+      await provider.removeFriend(friend.id);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${friend.name} dihapus dari teman belajar',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: successGreen,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      }
     } else {
-      provider.addFriend(friend);
+      // Tambah ke Firestore
+      await provider.addFriend(friend);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded,
+                    color: Colors.white, size: 22),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    '${friend.name} berhasil ditambahkan sebagai teman belajar',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: successGreen,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      }
     }
   }
 }
@@ -359,8 +413,7 @@ class _AcademicFriendCard extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start, // FIX: Changed to start
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Profile Avatar
                 Container(
@@ -395,7 +448,7 @@ class _AcademicFriendCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 16),
 
-                // User Info - FIXED: Added Expanded and proper constraints
+                // User Info
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -432,7 +485,6 @@ class _AcademicFriendCard extends StatelessWidget {
                               size: 12, color: neutralGray),
                           const SizedBox(width: 4),
                           Expanded(
-                            // FIX: Added Expanded for location text
                             child: Text(
                               friend.location,
                               style: TextStyle(
@@ -450,7 +502,7 @@ class _AcademicFriendCard extends StatelessWidget {
                 ),
 
                 // Action Button
-                const SizedBox(width: 8), // FIX: Added spacing
+                const SizedBox(width: 8),
                 Container(
                   width: 40,
                   height: 40,

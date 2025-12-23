@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/quiz_provider.dart';
 import '../models/quiz_question.dart';
 import '../models/quiz_result.dart';
-import '../providers/quiz_provider.dart';
 
 class QuizResultScreen extends StatelessWidget {
   final String babId;
@@ -722,11 +722,8 @@ class QuizResultScreen extends StatelessWidget {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.lightbulb_outline,
-                                color: secondaryCyan,
-                                size: 20,
-                              ),
+                              Icon(Icons.lightbulb_outline,
+                                  color: secondaryCyan, size: 20),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Column(
@@ -1037,11 +1034,8 @@ class QuizResultScreen extends StatelessWidget {
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Icon(
-                                      Icons.lightbulb_outline,
-                                      color: secondaryCyan,
-                                      size: 18,
-                                    ),
+                                    Icon(Icons.lightbulb_outline,
+                                        color: secondaryCyan, size: 18),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Column(
@@ -1110,7 +1104,6 @@ class QuizResultScreen extends StatelessWidget {
   }
 }
 
-// Academic Color Scheme Constants
 const Color primaryDarkBlue = Color(0xFF0A3D62);
 const Color primaryBlue = Color(0xFF1E3A8A);
 const Color primaryLightBlue = Color(0xFF0D47A1);

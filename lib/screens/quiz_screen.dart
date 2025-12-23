@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/quiz_provider.dart';
 import '../models/quiz_question.dart';
+import '../models/quiz_result.dart';
 import 'quiz_result_screen.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class QuizScreen extends StatefulWidget {
   final String babId;
@@ -442,11 +444,9 @@ class _QuizScreenState extends State<QuizScreen>
                                           if (isAnswered)
                                             Row(
                                               children: [
-                                                Icon(
-                                                  Icons.check_circle,
-                                                  size: 14,
-                                                  color: Colors.green[600],
-                                                ),
+                                                Icon(Icons.check_circle,
+                                                    size: 14,
+                                                    color: Colors.green[600]),
                                                 const SizedBox(width: 4),
                                                 Text(
                                                   'Terjawab',
@@ -597,20 +597,31 @@ class _QuizScreenState extends State<QuizScreen>
       // Submit quiz dan dapatkan result
       final result = await quizProv.submitQuiz(widget.babId);
       final questions = quizProv.getQuestions(widget.babId);
+      final answers = questions.asMap().entries.map((entry) {
+        return quizProv.getAnswer(widget.babId, entry.key);
+      }).toList();
 
-      // Navigate ke result screen
-      await Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => QuizResultScreen(
-            babId: widget.babId,
-            babNama: widget.babNama,
-            result: result,
-            questions: questions,
-            answers: questions.asMap().entries.map((entry) {
-              return quizProv.getAnswer(widget.babId, entry.key);
-            }).toList(),
-          ),
+      InterstitialAd.load(
+        adUnitId: 'ca-app-pub-3940256099942544/1033173712',
+        request: const AdRequest(),
+        adLoadCallback: InterstitialAdLoadCallback(
+          onAdLoaded: (InterstitialAd ad) {
+            ad.fullScreenContentCallback = FullScreenContentCallback(
+              onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                ad.dispose();
+                _navigateToResult(context, result, questions, answers);
+              },
+              onAdFailedToShowFullScreenContent:
+                  (InterstitialAd ad, AdError error) {
+                ad.dispose();
+                _navigateToResult(context, result, questions, answers);
+              },
+            );
+            ad.show();
+          },
+          onAdFailedToLoad: (LoadAdError error) {
+            _navigateToResult(context, result, questions, answers);
+          },
         ),
       );
     } catch (e) {
@@ -623,5 +634,21 @@ class _QuizScreenState extends State<QuizScreen>
         );
       }
     }
+  }
+
+  void _navigateToResult(BuildContext context, QuizResult result,
+      List<QuizQuestion> questions, List<int?> answers) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => QuizResultScreen(
+          babId: widget.babId,
+          babNama: widget.babNama,
+          result: result,
+          questions: questions,
+          answers: answers,
+        ),
+      ),
+    );
   }
 }

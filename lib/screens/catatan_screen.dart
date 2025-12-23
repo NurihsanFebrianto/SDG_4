@@ -164,90 +164,93 @@ class _CatatanScreenState extends State<CatatanScreen> {
 
   Widget _buildAcademicEmptyState() {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(28),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    primaryBlue.withOpacity(0.1),
-                    secondaryCyan.withOpacity(0.1)
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(28),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      primaryBlue.withOpacity(0.1),
+                      secondaryCyan.withOpacity(0.1)
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.note_alt_outlined,
+                  size: 72,
+                  color: primaryBlue,
+                ),
+              ),
+              const SizedBox(height: 28),
+              Text(
+                'Belum Ada Catatan Akademik',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: primaryDarkBlue,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Mulai buat catatan untuk materi pelajaranmu\ndan tingkatkan produktivitas belajar',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: neutralGray,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const TambahCatatanScreen(
+                        modulId: '',
+                        modulNama: '',
+                        babId: '',
+                        babNama: '',
+                      ),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryBlue,
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 2,
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Buat Catatan Pertama',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
                   ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
                 ),
-                shape: BoxShape.circle,
               ),
-              child: Icon(
-                Icons.note_alt_outlined,
-                size: 72,
-                color: primaryBlue,
-              ),
-            ),
-            const SizedBox(height: 28),
-            Text(
-              'Belum Ada Catatan Akademik',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: primaryDarkBlue,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Mulai buat catatan untuk materi pelajaranmu\ndan tingkatkan produktivitas belajar',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                color: neutralGray,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const TambahCatatanScreen(
-                      modulId: '',
-                      modulNama: '',
-                      babId: '',
-                      babNama: '',
-                    ),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryBlue,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 2,
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.add, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'Buat Catatan Pertama',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

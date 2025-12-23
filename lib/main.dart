@@ -116,16 +116,20 @@ class _RootPageState extends State<RootPage> {
 
     /// ✅ LOAD ACCESSIBILITY + PROFILE SETTINGS SAAT APP DIBUKA
     Future.microtask(() async {
-      // Load accessibility settings first
+      // Load accessibility settings dulu
       await context.read<AccessibilityProvider>().loadSettings();
 
-      // Load user profile if logged in
+      // Jika sudah login, load data user
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         await context.read<ProfileProvider>().loadUser();
-        // ✅ Load user-specific data
+
+        // Load data user-specific
         await context.read<CatatanProvider>().refreshCatatan();
-        await context.read<FriendsProvider>().refreshFriends();
+        await context
+            .read<FriendsProvider>()
+            .refreshFriends(); // ✅ Sekarang panggil refreshFriends
+        await context.read<QuizProvider>().refreshQuiz();
       }
     });
   }
@@ -141,19 +145,28 @@ class _RootPageState extends State<RootPage> {
           );
         }
 
-        // ✅ User logged out - clear all providers
+        // ✅ User logout → bersihkan semua data provider
         if (!snapshot.hasData) {
           Future.microtask(() {
             context.read<CatatanProvider>().clearCatatan();
-            context.read<FriendsProvider>().clearFriends();
+            context
+                .read<FriendsProvider>()
+                .clearFriends(); // ✅ Clear friends data
+            context.read<QuizProvider>().clearQuiz();
+            // Provider lain jika ada clear method-nya
           });
           return const LoginScreen();
         }
 
-        // ✅ User logged in - refresh their data
-        Future.microtask(() {
-          context.read<CatatanProvider>().refreshCatatan();
-          context.read<FriendsProvider>().refreshFriends();
+        // ✅ User login → load ulang data mereka
+        Future.microtask(() async {
+          await context.read<ProfileProvider>().loadUser();
+          await context.read<CatatanProvider>().refreshCatatan();
+          await context
+              .read<FriendsProvider>()
+              .refreshFriends(); // ✅ Load added + suggested friends
+          await context.read<QuizProvider>().refreshQuiz();
+          // Provider lain jika perlu refresh saat login
         });
 
         return const HomeScreen();

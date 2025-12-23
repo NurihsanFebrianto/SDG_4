@@ -125,42 +125,39 @@ class _TambahCatatanScreenState extends State<TambahCatatanScreen> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 8),
-                              // FIXED: Menggunakan Wrap atau Flexible untuk mencegah overflow
-                              Container(
-                                constraints: const BoxConstraints(
-                                  maxWidth: 200, // Batas maksimum width
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  mainAxisSize:
-                                      MainAxisSize.min, // Penting: gunakan min
-                                  children: [
-                                    Icon(Icons.auto_stories_rounded,
-                                        color: Colors.white, size: 14),
-                                    const SizedBox(width: 6),
-                                    Flexible(
-                                      // FIXED: Tambahkan Flexible di sini
-                                      child: Text(
-                                        'Bab: ${widget.babNama}',
-                                        style: const TextStyle(
-                                          fontSize:
-                                              12, // Ukuran font diperkecil
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.white,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
+                              Wrap(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
                                     ),
-                                  ],
-                                ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.auto_stories_rounded,
+                                            color: Colors.white, size: 14),
+                                        const SizedBox(width: 6),
+                                        Flexible(
+                                          child: Text(
+                                            'Bab: ${widget.babNama}',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.white,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -322,16 +319,12 @@ class _TambahCatatanScreenState extends State<TambahCatatanScreen> {
                       children: [
                         Icon(Icons.save_alt_rounded, size: 22),
                         SizedBox(width: 10),
-                        Flexible(
-                          child: Text(
-                            'Simpan Catatan Akademik',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.3,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                        Text(
+                          'Simpan Catatan Akademik',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.3,
                           ),
                         ),
                       ],

@@ -1,11 +1,12 @@
+// friends_provider.dart
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/friend.dart';
-import '../services/friends_service.dart';
-import '../services/database_service.dart';
 
 class FriendsProvider with ChangeNotifier {
-  final FriendsService _friendsService = FriendsService();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   List<Friend> _addedFriends = [];
   List<Friend> _suggestedFriends = [];
@@ -17,115 +18,166 @@ class FriendsProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  // ✅ Load friends from local DB on init
-  FriendsProvider() {
-    _loadAddedFriendsFromDB();
-  }
+  // =====================================================
+  // GET CURRENT USER ID
+  // =====================================================
+  String? get _currentUserId => _auth.currentUser?.uid;
 
-  // ✅ Load added friends from SQLite (user-specific)
-  Future<void> _loadAddedFriendsFromDB() async {
+  // =====================================================
+  // LOAD FRIENDS FROM FIRESTORE
+  // =====================================================
+  Future<void> loadFriendsFromFirestore() async {
+    if (_currentUserId == null) {
+      _error = 'User tidak login';
+      notifyListeners();
+      return;
+    }
+
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
     try {
-      final userId = FirebaseAuth.instance.currentUser?.uid;
-      if (userId == null) return;
+      // Ambil data teman dari Firestore
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(_currentUserId)
+          .collection('friends')
+          .orderBy('addedAt', descending: true)
+          .get();
 
-      final friendMaps = await DatabaseService.instance.getAllFriends();
-      _addedFriends = friendMaps.map((map) => Friend.fromMap(map)).toList();
+      _addedFriends =
+          snapshot.docs.map((doc) => Friend.fromJson(doc.data())).toList();
+
+      _isLoading = false;
       notifyListeners();
     } catch (e) {
-      print('Error loading friends from DB: $e');
+      _error = 'Gagal memuat teman: $e';
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
-  // Load suggested friends from API
+  // =====================================================
+  // LOAD SUGGESTED FRIENDS FROM FIRESTORE USERS COLLECTION
+  // =====================================================
   Future<void> loadSuggestedFriends() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final allSuggested = await _friendsService.fetchSuggestedFriends();
+      // Load daftar teman yang sudah ditambahkan
+      await loadFriendsFromFirestore();
 
-      // ✅ Filter out already added friends
-      _suggestedFriends = allSuggested.where((suggested) {
-        return !_addedFriends.any((added) => added.id == suggested.id);
-      }).toList();
+      // Load suggested friends dari collection 'users'
+      final usersSnapshot = await _firestore.collection('users').get();
 
-      _error = null;
+      final addedIds = _addedFriends.map((f) => f.id).toSet();
+
+      _suggestedFriends = usersSnapshot.docs
+          .where((doc) => doc.id != _currentUserId) // Exclude current user
+          .map((doc) {
+            final data = doc.data();
+            return Friend(
+              id: doc.id,
+              name: data['name'] ?? 'Unknown',
+              email: data['email'] ?? 'Unknown',
+              phone: data['phone'] ?? 'N/A',
+              location: data['alamat'] ?? data['asalSekolah'] ?? 'Unknown',
+              picture: data['imagePath'] ??
+                  'https://via.placeholder.com/150', // Default placeholder jika kosong
+              registeredDate: data['createdAt'] != null
+                  ? (data['createdAt'] as Timestamp).toDate()
+                  : DateTime.now(),
+            );
+          })
+          .where((friend) =>
+              !addedIds.contains(friend.id)) // Filter yang sudah ditambahkan
+          .toList();
+
+      _isLoading = false;
+      notifyListeners();
     } catch (e) {
-      _error = e.toString();
-      _suggestedFriends = [];
-    } finally {
+      _error = 'Gagal memuat rekomendasi: $e';
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // ✅ Add friend to added friends list (save to DB)
+  // =====================================================
+  // ADD FRIEND TO FIRESTORE
+  // =====================================================
   Future<void> addFriend(Friend friend) async {
-    _isLoading = true;
-    notifyListeners();
+    if (_currentUserId == null) return;
 
     try {
-      final success = await _friendsService.addFriend(friend);
-      if (success) {
-        // Save to local DB (with userId)
-        await DatabaseService.instance.insertFriend(friend.toMap());
+      // Simpan ke Firestore
+      await _firestore
+          .collection('users')
+          .doc(_currentUserId)
+          .collection('friends')
+          .doc(friend.id)
+          .set(friend.toJson());
 
-        _addedFriends.add(friend);
-        _suggestedFriends.removeWhere((f) => f.id == friend.id);
-        _error = null;
-      }
+      // Update local state
+      _addedFriends.add(friend);
+      _suggestedFriends.removeWhere((f) => f.id == friend.id);
+
+      notifyListeners();
     } catch (e) {
-      _error = 'Failed to add friend: $e';
-    } finally {
-      _isLoading = false;
+      print('❌ Error adding friend: $e');
+      _error = 'Gagal menambahkan teman';
       notifyListeners();
     }
   }
 
-  // ✅ Remove friend from added friends list (delete from DB)
+  // =====================================================
+  // REMOVE FRIEND FROM FIRESTORE
+  // =====================================================
   Future<void> removeFriend(String friendId) async {
-    _isLoading = true;
-    notifyListeners();
+    if (_currentUserId == null) return;
 
     try {
-      final friend = _addedFriends.firstWhere((f) => f.id == friendId);
-      final success = await _friendsService.removeFriend(friendId);
+      // Hapus dari Firestore
+      await _firestore
+          .collection('users')
+          .doc(_currentUserId)
+          .collection('friends')
+          .doc(friendId)
+          .delete();
 
-      if (success) {
-        // Delete from local DB
-        await DatabaseService.instance.deleteFriend(friendId);
+      // Update local state
+      final removedFriend = _addedFriends.firstWhere((f) => f.id == friendId);
+      _addedFriends.removeWhere((f) => f.id == friendId);
+      _suggestedFriends.add(removedFriend);
 
-        _addedFriends.removeWhere((f) => f.id == friendId);
-        _suggestedFriends.add(friend);
-        _error = null;
-      }
+      notifyListeners();
     } catch (e) {
-      _error = 'Failed to remove friend: $e';
-    } finally {
-      _isLoading = false;
+      print('❌ Error removing friend: $e');
+      _error = 'Gagal menghapus teman';
       notifyListeners();
     }
   }
 
+  // =====================================================
+  // CHECK IF FRIEND EXISTS
+  // =====================================================
   bool isFriendAdded(String friendId) {
-    return _addedFriends.any((friend) => friend.id == friendId);
+    return _addedFriends.any((f) => f.id == friendId);
   }
 
-  void clearError() {
-    _error = null;
-    notifyListeners();
-  }
-
-  // ✅ Refresh friends list (reload from DB)
+  // Refresh semua data friends (added + suggested)
   Future<void> refreshFriends() async {
-    await _loadAddedFriendsFromDB();
+    await loadSuggestedFriends(); // Ini sudah include loadFriendsFromFirestore()
   }
 
-  // ✅ Clear all friends (on logout/switch account)
+  // Bersihkan data friends saat logout
   void clearFriends() {
-    _addedFriends.clear();
-    _suggestedFriends.clear();
+    _addedFriends = [];
+    _suggestedFriends = [];
+    _isLoading = false;
+    _error = null;
     notifyListeners();
   }
 }
