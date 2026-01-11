@@ -37,5 +37,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  #  WAJIB UNTUK TEST + FIREBASE
+  firebase_core_platform_interface: any
+  firebase_auth_platform_interface: any
+  cloud_firestore_platform_interface: any
+
 flutter:
   uses-material-design: true

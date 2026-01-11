@@ -18,6 +18,21 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  // 👇 TAMBAHKAN DI SINI
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = context.read<ProfileProvider>();
+
+      // ✅ hanya load dari Firebase kalau belum ada data
+      if (provider.user == null) {
+        provider.loadUser();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ProfileProvider>();

@@ -167,6 +167,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     children: [
                       // Full Name Field
                       TextField(
+                        key: const ValueKey('full_name_field'),
                         controller: fullNameController,
                         decoration: InputDecoration(
                           labelText: 'Nama Lengkap',
@@ -194,6 +195,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
                       // Username Field
                       TextField(
+                        key: const ValueKey('email_field'),
                         controller: usernameController,
                         decoration: InputDecoration(
                           labelText: 'Email',
@@ -221,6 +223,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
                       // Password Field
                       TextField(
+                        key: const ValueKey('password_field'),
                         controller: passwordController,
                         obscureText: obscurePassword,
                         decoration: InputDecoration(
@@ -260,6 +263,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
                       // Confirm Password Field
                       TextField(
+                        key: const ValueKey('confirm_password_field'),
                         controller: confirmPasswordController,
                         obscureText: obscureConfirmPassword,
                         decoration: InputDecoration(
@@ -299,38 +303,35 @@ class _SignupScreenState extends State<SignupScreen> {
                       const SizedBox(height: 24),
 
                       // Signup Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: isLoading ? null : handleSignup,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue[600],
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                      ElevatedButton(
+                        key: const ValueKey('signup_button'),
+                        onPressed: isLoading ? null : handleSignup,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue[600],
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          child: isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
-                                    ),
-                                  ),
-                                )
-                              : const Text(
-                                  'Daftar',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
+                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
                                   ),
                                 ),
-                        ),
+                              )
+                            : const Text(
+                                'Daftar',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                       ),
                     ],
                   ),

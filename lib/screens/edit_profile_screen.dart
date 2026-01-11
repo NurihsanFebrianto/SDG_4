@@ -17,29 +17,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController genderCtrl;
   late TextEditingController addressCtrl;
   late TextEditingController schoolCtrl;
-
   final _formKey = GlobalKey<FormState>();
+  bool _initialized = false;
 
   @override
   void initState() {
     super.initState();
 
-    final user = context.read<ProfileProvider>().user;
-    if (user != null) {
-      nameCtrl = TextEditingController(text: user.name);
-      emailCtrl = TextEditingController(text: user.email);
-      phoneCtrl = TextEditingController(text: user.phone);
-      genderCtrl = TextEditingController(text: user.jenisKelamin);
-      addressCtrl = TextEditingController(text: user.alamat);
-      schoolCtrl = TextEditingController(text: user.asalSekolah);
-    } else {
-      nameCtrl = TextEditingController();
-      emailCtrl = TextEditingController();
-      phoneCtrl = TextEditingController();
-      genderCtrl = TextEditingController();
-      addressCtrl = TextEditingController();
-      schoolCtrl = TextEditingController();
-    }
+    nameCtrl = TextEditingController();
+    emailCtrl = TextEditingController();
+    phoneCtrl = TextEditingController();
+    genderCtrl = TextEditingController();
+    addressCtrl = TextEditingController();
+    schoolCtrl = TextEditingController();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = context.read<ProfileProvider>().user;
+      if (user != null) {
+        nameCtrl.text = user.name;
+        emailCtrl.text = user.email;
+        phoneCtrl.text = user.phone;
+        genderCtrl.text = user.jenisKelamin;
+        addressCtrl.text = user.alamat;
+        schoolCtrl.text = user.asalSekolah;
+      }
+    });
   }
 
   @override
@@ -89,6 +91,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             _buildSectionTitle('Informasi Dasar'),
             const SizedBox(height: 16),
             _buildField(
+              fieldKey: const ValueKey('name_field'),
               label: "Nama Lengkap",
               icon: Icons.person_outline,
               controller: nameCtrl,
@@ -102,6 +105,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             const SizedBox(height: 16),
             _buildField(
+              fieldKey: const ValueKey('email_field'),
               label: "Email",
               icon: Icons.email_outlined,
               controller: emailCtrl,
@@ -162,6 +166,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildField({
+    Key? fieldKey,
     required String label,
     required IconData icon,
     required TextEditingController controller,
@@ -184,6 +189,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ],
       ),
       child: TextFormField(
+        key: fieldKey,
         controller: controller,
         enabled: isEnabled,
         keyboardType: keyboardType,
@@ -274,6 +280,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         Expanded(
           flex: 2,
           child: ElevatedButton(
+            key: const ValueKey('save_button'), // ✅ TAMBAH INI
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1E3A5F),
               foregroundColor: Colors.white,
