@@ -31,14 +31,21 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-
   await MobileAds.instance.initialize();
-
   await LocalNotificationHelper.init();
+
   FirebaseMessaging.onBackgroundMessage(
     _firebaseMessagingBackgroundHandler,
   );
 
+  runApp(const AppKurikulum());
+}
+
+/// ===============================
+/// KHUSUS UNTUK INTEGRATION TEST
+/// ===============================
+void mainTest() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const AppKurikulum());
 }
 
